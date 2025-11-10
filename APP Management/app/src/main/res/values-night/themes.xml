@@ -1,0 +1,12 @@
+<resources>
+    <style name="Base.Theme.PersonalFinancialManagement" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="colorPrimary">@color/accentBlue</item>
+        <item name="colorPrimaryContainer">@color/accentBlue</item>
+        <item name="android:navigationBarColor">@color/surfaceLight</item>
+        <item name="android:statusBarColor">@color/surfaceLight</item>
+        <item name="android:windowBackground">@drawable/bg_app_gradient</item>
+        <item name="colorSurface">@color/surfaceCard</item>
+    </style>
+
+    <style name="Theme.PersonalFinancialManagement" parent="Base.Theme.PersonalFinancialManagement" />
+</resources>

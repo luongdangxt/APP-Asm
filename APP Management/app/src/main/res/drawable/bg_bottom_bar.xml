@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Bottom-right shadow for bar -->
+    <item android:top="4dp" android:left="4dp">
+        <shape android:shape="rectangle">
+            <corners android:topLeftRadius="16dp" android:topRightRadius="16dp"/>
+            <solid android:color="#11000000"/>
+        </shape>
+    </item>
+    <!-- Top-left subtle highlight -->
+    <item android:bottom="4dp" android:right="4dp">
+        <shape android:shape="rectangle">
+            <corners android:topLeftRadius="16dp" android:topRightRadius="16dp"/>
+            <solid android:color="#22FFFFFF"/>
+        </shape>
+    </item>
+    <!-- Base surface of bar -->
+    <item>
+        <shape android:shape="rectangle">
+            <corners android:topLeftRadius="16dp" android:topRightRadius="16dp"/>
+            <solid android:color="@color/bottom_bar_bg"/>
+        </shape>
+    </item>
+</layer-list>

@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/manage_data_root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/bg_app_gradient">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:paddingHorizontal="16dp"
+        android:paddingVertical="16dp">
+
+        <!-- Header -->
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:gravity="center_vertical">
+            <ImageView android:id="@+id/btn_back" android:layout_width="36dp" android:layout_height="36dp" android:background="@drawable/shape_pill_white" android:padding="8dp" android:src="@drawable/ic_chevron_left" android:tint="@color/textPrimary"/>
+            <TextView android:id="@+id/tv_title" style="@style/AppTitleLarge" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Manage App Data" android:layout_marginStart="8dp"/>
+        </LinearLayout>
+
+        <!-- Card -->
+        <LinearLayout
+            android:id="@+id/card_storage"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:background="@drawable/shape_card"
+            android:padding="@dimen/card_inner_padding"
+            android:layout_marginTop="12dp">
+
+            <TextView android:id="@+id/tv_used_total" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Used: 0 MB"/>
+
+            <FrameLayout android:id="@+id/storage_track" android:layout_width="match_parent" android:layout_height="22dp" android:layout_marginTop="8dp" android:background="@drawable/bg_storage_track">
+                <LinearLayout android:layout_width="match_parent" android:layout_height="match_parent">
+                    <View android:id="@+id/storage_seg_db" android:layout_width="0dp" android:layout_height="match_parent" android:background="@drawable/shape_pill_blue"/>
+                    <View android:id="@+id/storage_seg_cache" android:layout_width="0dp" android:layout_height="match_parent" android:background="@drawable/shape_pill_red"/>
+                    <View android:id="@+id/storage_seg_other" android:layout_width="0dp" android:layout_height="match_parent" android:background="@drawable/shape_pill_grey"/>
+                </LinearLayout>
+            </FrameLayout>
+
+            <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="vertical" android:layout_marginTop="12dp">
+                <TextView android:id="@+id/tv_used_db" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Database: 0 MB"/>
+                <TextView android:id="@+id/tv_used_cache" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Cache: 0 MB"/>
+                <TextView android:id="@+id/tv_used_other" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Other: 0 MB"/>
+            </LinearLayout>
+        </LinearLayout>
+
+        <Button android:id="@+id/btn_clear_data" android:layout_width="match_parent" android:layout_height="48dp" android:text="Clear Data" android:layout_marginTop="16dp" android:background="@drawable/bg_neu_concave_button_primary" android:textColor="@android:color/white"/>
+
+    </LinearLayout>
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

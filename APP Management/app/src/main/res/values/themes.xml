@@ -1,0 +1,12 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <!-- Base application theme. -->
+    <style name="Base.Theme.PersonalFinancialManagement" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="colorPrimary">@color/primaryBlue</item>
+        <item name="colorPrimaryContainer">@color/primaryBlue</item>
+        <item name="android:navigationBarColor">@color/surfaceLight</item>
+        <item name="android:statusBarColor">@color/primaryBlueDark</item>
+        <item name="android:windowBackground">@drawable/bg_app_gradient</item>
+    </style>
+
+    <style name="Theme.PersonalFinancialManagement" parent="Base.Theme.PersonalFinancialManagement" />
+</resources>

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="textPrimary">#E5E7EB</color>
+    <color name="textSecondary">#9CA3AF</color>
+    <color name="surfaceLight">#1A1D21</color>
+    <color name="surfaceCard">#252931</color>
+    <color name="accentBlue">#00B4FF</color>
+    <color name="shadowLight">#35FFFFFF</color>
+    <color name="shadowDark">#4D000000</color>
+    <color name="bottom_nav_tint">@color/textSecondary</color>
+    <color name="bottom_bar_bg">#27313E</color>
+    <color name="icon_circle_bg">#2B3440</color>
+    <color name="app_gradient_start">#2B3440</color>
+    <color name="app_gradient_end">#161B24</color>
+</resources>

@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Outer shadow (bottom-right) -->
+    <item android:top="3dp" android:left="3dp">
+        <shape android:shape="oval">
+            <size android:width="56dp" android:height="56dp"/>
+            <solid android:color="#20000000"/>
+        </shape>
+    </item>
+    <!-- Outer highlight (top-left) -->
+    <item android:bottom="3dp" android:right="3dp">
+        <shape android:shape="oval">
+            <size android:width="56dp" android:height="56dp"/>
+            <solid android:color="#33FFFFFF"/>
+        </shape>
+    </item>
+    <!-- Base primary surface -->
+    <item>
+        <shape android:shape="oval">
+            <size android:width="56dp" android:height="56dp"/>
+            <solid android:color="@color/primaryBlue"/>
+        </shape>
+    </item>
+</layer-list>
+

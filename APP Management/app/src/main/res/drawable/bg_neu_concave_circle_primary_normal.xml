@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Outer rim (soft shadow bottom-right) -->
+    <item android:top="2dp" android:left="2dp">
+        <shape android:shape="oval">
+            <size android:width="56dp" android:height="56dp"/>
+            <solid android:color="#12000000"/>
+        </shape>
+    </item>
+    <!-- Outer rim (soft highlight top-left) -->
+    <item android:bottom="2dp" android:right="2dp">
+        <shape android:shape="oval">
+            <size android:width="56dp" android:height="56dp"/>
+            <solid android:color="#10FFFFFF"/>
+        </shape>
+    </item>
+
+    <!-- Base fill -->
+    <item>
+        <shape android:shape="oval">
+            <size android:width="56dp" android:height="56dp"/>
+            <solid android:color="@color/primaryBlue"/>
+        </shape>
+    </item>
+
+    <!-- Removed inner shading for flat/raised look in light mode -->
+    <!-- Removed inner highlight to avoid white ring -->
+</layer-list>

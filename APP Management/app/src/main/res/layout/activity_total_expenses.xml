@@ -1,0 +1,269 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/bg_app_gradient">
+
+    <!-- Fixed header container (fades on scroll) -->
+    <LinearLayout
+        android:id="@+id/header_container"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:clickable="false"
+        android:focusable="false"
+        android:elevation="0dp">
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:paddingHorizontal="12dp">
+            <ImageButton
+                android:id="@+id/btn_back"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:layout_centerVertical="true"
+                android:background="@drawable/shape_pill_white"
+                android:src="@drawable/ic_chevron_left"
+                android:tint="#5F6368"/>
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Total Expenses"
+                android:textStyle="bold"
+                android:textSize="18sp"
+                android:layout_centerInParent="true"/>
+        </RelativeLayout>
+
+        <!-- Month selector -->
+        <LinearLayout
+            android:id="@+id/card_month_selector"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="16dp"
+            android:background="@drawable/shape_card"
+            android:padding="12dp"
+            android:orientation="vertical">
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical">
+                <ImageButton
+                    android:id="@+id/btn_prev_month"
+                    android:layout_width="36dp"
+                    android:layout_height="36dp"
+                    android:background="@drawable/shape_pill_white"
+                    android:src="@drawable/ic_chevron_left"
+                    android:tint="#5F6368"/>
+                <TextView
+                    android:id="@+id/tv_month_label"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="February - 2023"
+                    android:textStyle="bold"
+                    android:textSize="16sp"
+                    android:gravity="center"/>
+                <ImageButton
+                    android:id="@+id/btn_next_month"
+                    android:layout_width="36dp"
+                    android:layout_height="36dp"
+                    android:background="@drawable/shape_pill_white"
+                    android:src="@drawable/ic_chevron_right"
+                    android:tint="#5F6368"/>
+            </LinearLayout>
+
+            <!-- Weekday labels -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingTop="8dp"
+                android:paddingBottom="4dp"
+                android:gravity="center">
+                <TextView style="@style/TextAppearance.Material3.LabelMedium" android:text="Mo" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:gravity="center"/>
+                <TextView style="@style/TextAppearance.Material3.LabelMedium" android:text="Tu" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:gravity="center"/>
+                <TextView style="@style/TextAppearance.Material3.LabelMedium" android:text="We" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:gravity="center"/>
+                <TextView style="@style/TextAppearance.Material3.LabelMedium" android:text="Th" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:gravity="center"/>
+                <TextView style="@style/TextAppearance.Material3.LabelMedium" android:text="Fri" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:gravity="center"/>
+                <TextView style="@style/TextAppearance.Material3.LabelMedium" android:text="Sa" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:gravity="center"/>
+                <TextView style="@style/TextAppearance.Material3.LabelMedium" android:text="Su" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:gravity="center"/>
+            </LinearLayout>
+
+            <!-- Week days row -->
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rv_week_days"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:overScrollMode="never"/>
+        </LinearLayout>
+
+        <!-- Total circle -->
+        <FrameLayout
+            android:id="@+id/total_circle_container"
+            android:layout_width="match_parent"
+            android:layout_height="220dp"
+            android:gravity="center">
+            <View
+                android:id="@+id/pulse1"
+                android:layout_width="160dp"
+                android:layout_height="160dp"
+                android:background="@drawable/circle_pulse"
+                android:layout_gravity="center"
+                android:alpha="0.0"/>
+            <View
+                android:id="@+id/pulse2"
+                android:layout_width="160dp"
+                android:layout_height="160dp"
+                android:background="@drawable/circle_pulse"
+                android:layout_gravity="center"
+                android:alpha="0.0"/>
+        </FrameLayout>
+
+        <TextView
+            android:id="@+id/tv_percent"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="You have Spend total\n0% of your budget"
+            android:textAlignment="center"
+            android:gravity="center"
+            android:textStyle="bold"
+            android:textSize="16sp"
+            android:layout_marginTop="8dp"
+            android:layout_marginBottom="16dp"/>
+
+    </LinearLayout>
+
+    <!-- Scrim that fades in as the bottom sheet slides up -->
+    <View
+        android:id="@+id/sheet_scrim"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#66000000"
+        android:alpha="0"
+        android:clickable="false"/>
+
+    <!-- Bottom sheet for stats/list that can be dragged to cover header -->
+    <LinearLayout
+        android:id="@+id/bottom_sheet"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:background="@drawable/shape_bottom_sheet"
+        android:paddingTop="10dp"
+        android:paddingLeft="16dp"
+        android:paddingRight="16dp"
+        android:paddingBottom="16dp"
+        android:elevation="12dp"
+        app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior"
+        app:behavior_peekHeight="280dp"
+        app:behavior_fitToContents="true">
+
+        <View
+            android:layout_width="48dp"
+            android:layout_height="4dp"
+            android:layout_gravity="center_horizontal"
+            android:background="@drawable/handle_bar"
+            android:layout_marginTop="4dp"
+            android:layout_marginBottom="12dp"/>
+
+        <LinearLayout
+            android:id="@+id/tabs_container"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:layout_marginTop="4dp"
+            android:clickable="true"
+            android:focusable="true"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/tv_tab_spends"
+                android:layout_width="wrap_content"
+                android:layout_height="40dp"
+                android:gravity="center"
+                android:paddingHorizontal="24dp"
+                android:text="Spends"
+                android:textStyle="bold"
+                android:textColor="@color/white"
+                android:background="@drawable/shape_pill_blue"/>
+
+            <Space android:layout_width="12dp" android:layout_height="40dp"/>
+
+            <TextView
+                android:id="@+id/tv_tab_categories"
+                android:layout_width="wrap_content"
+                android:layout_height="40dp"
+                android:gravity="center"
+                android:paddingHorizontal="24dp"
+                android:text="Categories"
+                android:textColor="@color/textSecondary"
+                android:background="@drawable/shape_pill_white"/>
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/categories_header"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:visibility="gone">
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:background="@drawable/shape_card"
+                android:padding="16dp">
+                <FrameLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="220dp"
+                    android:layout_gravity="center_horizontal"
+                    android:layout_marginTop="8dp">
+                    <com.example.personalfinancialmanagement.DialProgressView
+                        android:id="@+id/dial_view"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center"/>
+                    <TextView
+                        android:id="@+id/tv_dial_percent"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="0%"
+                        android:textStyle="bold"
+                        android:textSize="18sp"
+                        android:textColor="@color/white"
+                        android:layout_gravity="center"/>
+                </FrameLayout>
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center"
+                    android:paddingTop="8dp">
+                    <LinearLayout android:id="@+id/legend1" android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="horizontal" android:padding="6dp">
+                        <View android:id="@+id/legend_dot1" android:layout_width="10dp" android:layout_height="10dp" android:background="@drawable/bg_day_selected"/>
+                        <TextView android:id="@+id/legend_text1" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Food" android:layout_marginStart="6dp"/>
+                    </LinearLayout>
+                    <Space android:layout_width="16dp" android:layout_height="8dp"/>
+                    <LinearLayout android:id="@+id/legend2" android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="horizontal" android:padding="6dp">
+                        <View android:id="@+id/legend_dot2" android:layout_width="10dp" android:layout_height="10dp" android:background="@drawable/bg_day_selected"/>
+                        <TextView android:id="@+id/legend_text2" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Rent" android:layout_marginStart="6dp"/>
+                    </LinearLayout>
+                    <Space android:layout_width="16dp" android:layout_height="8dp"/>
+                    <LinearLayout android:id="@+id/legend3" android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="horizontal" android:padding="6dp">
+                        <View android:id="@+id/legend_dot3" android:layout_width="10dp" android:layout_height="10dp" android:background="@drawable/bg_day_selected"/>
+                        <TextView android:id="@+id/legend_text3" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Shopping" android:layout_marginStart="6dp"/>
+                    </LinearLayout>
+                </LinearLayout>
+            </LinearLayout>
+        </LinearLayout>
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rv_list"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:paddingTop="12dp"
+            android:clipToPadding="false"/>
+    </LinearLayout>
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

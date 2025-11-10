@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="200dp"
+    android:layout_height="120dp"
+    android:layout_marginEnd="16dp"
+    android:orientation="vertical"
+    android:padding="16dp"
+    android:background="@drawable/shape_card">
+
+    <TextView
+        android:id="@+id/tv_card_title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Total Expense"
+        android:textStyle="bold"
+        android:textColor="@color/textSecondary"/>
+
+    <TextView
+        android:id="@+id/tv_card_value"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="$0.00"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        android:textColor="@color/textPrimary"
+        android:layout_marginTop="8dp"/>
+
+    <TextView
+        android:id="@+id/tv_card_hint"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="This month"
+        android:textSize="12sp"
+        android:textColor="@color/textSecondary"
+        android:layout_marginTop="4dp"/>
+
+</LinearLayout>

@@ -1,0 +1,178 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/bg_app_gradient"
+    android:paddingHorizontal="@dimen/page_padding"
+    android:paddingTop="0dp"
+    android:paddingBottom="0dp">
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/header_title"
+            style="@style/AppTitleLarge"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="Add Expense"/>
+
+        <!-- Calendar card -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="@dimen/card_side_margin"
+            android:layout_marginVertical="@dimen/card_gap"
+            android:background="@drawable/shape_card"
+            android:padding="@dimen/card_inner_padding"
+            android:orientation="vertical">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical">
+                <ImageButton
+                    android:id="@+id/btn_prev_month"
+                    android:layout_width="36dp"
+                    android:layout_height="36dp"
+                    android:background="@drawable/shape_pill_white"
+                    android:src="@drawable/ic_chevron_left"
+                    android:tint="#5F6368"/>
+                <TextView
+                    android:id="@+id/tv_month_label"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="February - 2023"
+                    android:textStyle="bold"
+                    android:textSize="16sp"
+                    android:gravity="center"/>
+                <ImageButton
+                    android:id="@+id/btn_next_month"
+                    android:layout_width="36dp"
+                    android:layout_height="36dp"
+                    android:background="@drawable/shape_pill_white"
+                    android:src="@drawable/ic_chevron_right"
+                    android:tint="#5F6368"/>
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingTop="8dp"
+                android:paddingBottom="4dp"
+                android:gravity="center">
+                <TextView android:text="Mo" android:textColor="@color/textSecondary" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:gravity="center"/>
+                <TextView android:text="Tu" android:textColor="@color/textSecondary" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:gravity="center"/>
+                <TextView android:text="We" android:textColor="@color/textSecondary" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:gravity="center"/>
+                <TextView android:text="Th" android:textColor="@color/textSecondary" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:gravity="center"/>
+                <TextView android:text="Fri" android:textColor="@color/textSecondary" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:gravity="center"/>
+                <TextView android:text="Sa" android:textColor="@color/textSecondary" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:gravity="center"/>
+                <TextView android:text="Su" android:textColor="@color/textSecondary" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:gravity="center"/>
+            </LinearLayout>
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rv_days"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"/>
+        </LinearLayout>
+
+        <!-- Title -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Expense Title"
+            android:textColor="@color/textSecondary"
+            android:paddingStart="16dp"/>
+        <EditText
+            android:id="@+id/ed_title"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:layout_marginHorizontal="@dimen/card_side_margin"
+            android:layout_marginVertical="8dp"
+            android:background="@drawable/shape_pill_white"
+            android:paddingHorizontal="16dp"
+            android:textColor="@color/textPrimary"
+            android:textColorHint="@color/textSecondary"
+            android:hint="Family Expense"/>
+
+        <!-- Amount -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Amount"
+            android:textColor="@color/textSecondary"
+            android:paddingStart="16dp"/>
+        <EditText
+            android:id="@+id/ed_amount"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:layout_marginHorizontal="@dimen/card_side_margin"
+            android:layout_marginVertical="8dp"
+            android:background="@drawable/shape_pill_white"
+            android:paddingHorizontal="16dp"
+            android:inputType="numberDecimal"
+            android:textColor="@color/textPrimary"
+            android:textColorHint="@color/textSecondary"
+            android:hint="1,368"/>
+
+        <!-- Category chips -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Expense Category"
+            android:textColor="@color/textSecondary"
+            android:paddingStart="16dp"/>
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:paddingHorizontal="@dimen/card_side_margin"
+            android:paddingVertical="8dp">
+            <TextView
+                android:id="@+id/chip_custom"
+                android:layout_width="wrap_content"
+                android:layout_height="40dp"
+                android:gravity="center"
+                android:text="+"
+                android:paddingHorizontal="16dp"
+                android:background="@drawable/shape_dashed"/>
+            <Space android:layout_width="8dp" android:layout_height="40dp"/>
+            <TextView
+                android:id="@+id/chip_health"
+                android:layout_width="wrap_content"
+                android:layout_height="40dp"
+                android:gravity="center"
+                android:text="Health"
+                android:paddingHorizontal="16dp"
+                android:background="@drawable/shape_pill_white"/>
+            <Space android:layout_width="8dp" android:layout_height="40dp"/>
+            <TextView
+                android:id="@+id/chip_grocery"
+                android:layout_width="wrap_content"
+                android:layout_height="40dp"
+                android:gravity="center"
+                android:text="Grocery"
+                android:paddingHorizontal="16dp"
+                android:background="@drawable/shape_pill_white"/>
+        </LinearLayout>
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_save_expense"
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:layout_marginHorizontal="@dimen/card_side_margin"
+            android:layout_marginVertical="@dimen/card_gap"
+            android:text="ADD EXPENSE"
+            android:textAllCaps="false"
+            android:textStyle="bold"
+            android:textColor="@android:color/white"
+            app:cornerRadius="28dp"
+            android:background="@drawable/bg_neu_concave_button_primary"
+            app:rippleColor="#33FFFFFF"/>
+
+    </LinearLayout>
+</ScrollView>

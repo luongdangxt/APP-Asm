@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Outer rim, slightly darker -->
+    <item android:top="2dp" android:left="2dp">
+        <shape android:shape="oval">
+            <size android:width="56dp" android:height="56dp"/>
+            <solid android:color="#2A000000"/>
+        </shape>
+    </item>
+    <item android:bottom="2dp" android:right="2dp">
+        <shape android:shape="oval">
+            <size android:width="56dp" android:height="56dp"/>
+            <solid android:color="#14FFFFFF"/>
+        </shape>
+    </item>
+
+    <!-- Darker base when pressed -->
+    <item>
+        <shape android:shape="oval">
+            <size android:width="56dp" android:height="56dp"/>
+            <solid android:color="#1673D6"/>
+        </shape>
+    </item>
+
+    <!-- Removed inner shading on pressed too -->
+
+    <!-- Remove inner linear highlights to avoid any white ring -->
+</layer-list>
