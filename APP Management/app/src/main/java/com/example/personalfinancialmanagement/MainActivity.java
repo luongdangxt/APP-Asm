@@ -22,7 +22,10 @@ import androidx.work.WorkManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.example.personalfinancialmanagement.expenses.ManageBudgetsActivity;
+import com.example.personalfinancialmanagement.ManageBudgetsActivity;
+import com.example.personalfinancialmanagement.ExpenseRepository;
+import com.example.personalfinancialmanagement.IncomeRepository;
+import com.example.personalfinancialmanagement.BudgetRepository;
 
 import java.util.Calendar;
 import java.util.List;

@@ -13,6 +13,9 @@ android {
         versionCode = 1
         versionName = "1.0"
 
+        // Default API base (emulator -> host). Override for device builds below if needed.
+        buildConfigField("String", "API_BASE_URL", "\"http://10.0.2.2:3000\"")
+
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
@@ -28,6 +31,10 @@ android {
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
+    }
+
+    buildFeatures {
+        buildConfig = true
     }
 }
 

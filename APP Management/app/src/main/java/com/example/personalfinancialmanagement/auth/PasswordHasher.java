@@ -1,11 +1,16 @@
-package com.example.personalfinancialmanagement;
+package com.example.personalfinancialmanagement.auth;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
-class PasswordHasher {
-    static String sha256(String input) {
+/**
+ * Client-side hash helper (backend still does its own bcrypt hashing).
+ */
+public final class PasswordHasher {
+    private PasswordHasher() { }
+
+    public static String sha256(String input) {
         try {
             MessageDigest digest = MessageDigest.getInstance("SHA-256");
             byte[] hash = digest.digest(input.getBytes(StandardCharsets.UTF_8));

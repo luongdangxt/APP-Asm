@@ -1,4 +1,4 @@
-package com.example.personalfinancialmanagement;
+package com.example.personalfinancialmanagement.data.user;
 
 import androidx.room.Dao;
 import androidx.room.Insert;

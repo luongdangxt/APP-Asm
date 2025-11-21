@@ -1,4 +1,4 @@
-package com.example.personalfinancialmanagement;
+package com.example.personalfinancialmanagement.auth;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -7,6 +7,7 @@ import androidx.activity.EdgeToEdge;
 import androidx.core.view.WindowCompat;
 import android.graphics.Color;
 import android.view.WindowInsetsController;
+import android.os.Build;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
@@ -16,6 +17,13 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.android.material.checkbox.MaterialCheckBox;
+
+import com.example.personalfinancialmanagement.Async;
+import com.example.personalfinancialmanagement.MainActivity;
+import com.example.personalfinancialmanagement.SessionManager;
+import com.example.personalfinancialmanagement.data.user.User;
+import com.example.personalfinancialmanagement.data.user.UserRepository;
+import com.example.personalfinancialmanagement.R;
 
 public class LoginActivity extends AppCompatActivity {
     private UserRepository userRepository;
@@ -28,10 +36,12 @@ public class LoginActivity extends AppCompatActivity {
         WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
         getWindow().setStatusBarColor(Color.TRANSPARENT);
         getWindow().setNavigationBarColor(Color.TRANSPARENT);
-        WindowInsetsController c = getWindow().getInsetsController();
-        if (c != null) {
-            c.setSystemBarsAppearance(0, WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS);
-            c.setSystemBarsAppearance(0, WindowInsetsController.APPEARANCE_LIGHT_NAVIGATION_BARS);
+        if (Build.VERSION.SDK_INT >= 30) {
+            WindowInsetsController c = getWindow().getInsetsController();
+            if (c != null) {
+                c.setSystemBarsAppearance(0, WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS);
+                c.setSystemBarsAppearance(0, WindowInsetsController.APPEARANCE_LIGHT_NAVIGATION_BARS);
+            }
         }
         setContentView(R.layout.activity_login);
 
