@@ -11,6 +11,7 @@ public class SessionManager {
     private static final String KEY_REMEMBER = "remember_login";
     private static final String KEY_USER_ID = "remembered_user_id";
     private static final String KEY_USERNAME = "remembered_username";
+    private static final String KEY_AUTH_TOKEN = "auth_token";
 
     private final SharedPreferences prefs;
 
@@ -32,6 +33,20 @@ public class SessionManager {
             editor.remove(KEY_USERNAME);
         }
         editor.apply();
+    }
+
+    public void saveAuthToken(String token) {
+        SharedPreferences.Editor editor = prefs.edit();
+        if (token == null || token.trim().isEmpty()) {
+            editor.remove(KEY_AUTH_TOKEN);
+        } else {
+            editor.putString(KEY_AUTH_TOKEN, token);
+        }
+        editor.apply();
+    }
+
+    public String getAuthToken() {
+        return prefs.getString(KEY_AUTH_TOKEN, null);
     }
 
     public boolean shouldAutoLogin() {

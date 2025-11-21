@@ -16,21 +16,23 @@ import java.net.URL;
 import java.nio.charset.StandardCharsets;
 
 import com.example.personalfinancialmanagement.auth.PasswordHasher;
-import com.example.personalfinancialmanagement.BuildConfig;
+import com.example.personalfinancialmanagement.SessionManager;
 
 /**
  * Calls the Node.js + MongoDB backend for auth while keeping the same method names.
  */
 public class UserRepository {
     private static final String TAG = "UserRepository";
-    // Default for emulator; override in build.gradle via BuildConfig.API_BASE_URL for device/Wi-Fi testing.
-    private static final String BASE_URL = BuildConfig.API_BASE_URL;
+    // Default for emulator; tries to read BuildConfig.API_BASE_URL via reflection to avoid IDE sync issues.
+    private static final String BASE_URL = resolveBaseUrl();
 
     private final Context context;
+    private final SessionManager session;
     private String lastError;
 
     public UserRepository(Context context) {
         this.context = context.getApplicationContext();
+        this.session = new SessionManager(this.context);
     }
 
     public String getLastError() {
@@ -57,6 +59,7 @@ public class UserRepository {
         try {
             ApiResult result = request("POST", "/auth/register", body);
             if (result.statusCode == 201 && result.json != null) {
+                saveTokenIfPresent(result.json);
                 JSONObject user = result.json.optJSONObject("user");
                 if (user != null) {
                     return user.optLong("id", -1L);
@@ -90,6 +93,7 @@ public class UserRepository {
         try {
             ApiResult result = request("POST", "/auth/login", body);
             if (result.statusCode == 200 && result.json != null) {
+                saveTokenIfPresent(result.json);
                 JSONObject user = result.json.optJSONObject("user");
                 if (user != null) {
                     long id = user.optLong("id", -1L);
@@ -138,6 +142,10 @@ public class UserRepository {
             conn.setConnectTimeout(5000);
             conn.setReadTimeout(8000);
             conn.setRequestProperty("Accept", "application/json");
+            String token = session.getAuthToken();
+            if (token != null && !token.isEmpty()) {
+                conn.setRequestProperty("Authorization", "Bearer " + token);
+            }
             if (body != null) {
                 conn.setDoOutput(true);
                 conn.setRequestProperty("Content-Type", "application/json; charset=UTF-8");
@@ -181,6 +189,28 @@ public class UserRepository {
             if (msg != null && !msg.isEmpty()) return msg;
         }
         return fallback;
+    }
+
+    private static String resolveBaseUrl() {
+        String fallback = "http://10.0.2.2:3000";
+        try {
+            Class<?> clazz = Class.forName("com.example.personalfinancialmanagement.BuildConfig");
+            java.lang.reflect.Field f = clazz.getField("API_BASE_URL");
+            Object val = f.get(null);
+            if (val instanceof String) {
+                String s = (String) val;
+                if (!s.isEmpty()) return s;
+            }
+        } catch (Throwable ignored) { }
+        return fallback;
+    }
+
+    private void saveTokenIfPresent(JSONObject json) {
+        if (json == null) return;
+        String token = json.optString("token", null);
+        if (token != null && !token.isEmpty()) {
+            session.saveAuthToken(token);
+        }
     }
 
     private static class ApiResult {
