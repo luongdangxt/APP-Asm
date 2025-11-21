@@ -105,6 +105,8 @@ public class ManageDataFragment extends Fragment {
         final long userId = requireActivity().getIntent().getLongExtra("userId", -1);
         Async.runIo(() -> {
             try { AppDatabase.getInstance(requireContext()).clearUserData(userId); } catch (Throwable ignored) {}
+            try { new CategoryPreferences(requireContext()).clearAll(); } catch (Throwable ignored) {}
+            try { new BudgetAlertTracker(requireContext()).clearAll(); } catch (Throwable ignored) {}
             Async.runMain(() -> android.widget.Toast.makeText(requireContext(), "Cleared data for this account", android.widget.Toast.LENGTH_SHORT).show());
             Async.runMain(this::refreshSizes);
         });

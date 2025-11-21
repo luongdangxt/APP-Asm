@@ -6,4 +6,6 @@
     <dimen name="card_gap">16dp</dimen>
     <dimen name="title_extra_top">12dp</dimen>
     <dimen name="profile_side_margin">24dp</dimen>
+    <dimen name="form_bottom_safe_space">120dp</dimen>
+    <dimen name="bottom_bar_height">75dp</dimen>
 </resources>

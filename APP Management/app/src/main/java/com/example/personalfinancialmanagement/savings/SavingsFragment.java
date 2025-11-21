@@ -179,13 +179,17 @@ public class SavingsFragment extends Fragment {
                 if (tvMonthIncome != null) tvMonthIncome.setText(String.format(java.util.Locale.getDefault(), "$%,.0f", fTotalIncome));
                 if (tvMonthExpense != null) tvMonthExpense.setText(String.format(java.util.Locale.getDefault(), "$%,.0f", fTotalExpense));
                 if (tvAutoContributions != null) tvAutoContributions.setText(String.format(java.util.Locale.getDefault(), "$%,.0f", fAutoAllocated));
-                if (tvLeftoverMessage != null) tvLeftoverMessage.setText(String.format(java.util.Locale.getDefault(), "$%,.0f available", fLeftover));
+                if (tvLeftoverMessage != null) {
+                    String available = String.format(java.util.Locale.getDefault(), "$%,.0f", fLeftover);
+                    tvLeftoverMessage.setText(getString(R.string.savings_leftover_available, available));
+                }
                 if (tvLeftoverHint != null) {
                     double suggested = Math.min(fLeftover, Math.max(0, mgTarget - savedForProgress));
                     if (suggested <= 0) {
-                        tvLeftoverHint.setText("Great job! You're on pace with your monthly goal.");
+                        tvLeftoverHint.setText(R.string.savings_leftover_on_track);
                     } else {
-                        tvLeftoverHint.setText(String.format(java.util.Locale.getDefault(), "Tip: Move %s today to stay on track.", String.format(java.util.Locale.getDefault(), "$%,.0f", suggested)));
+                        String amount = String.format(java.util.Locale.getDefault(), "$%,.0f", suggested);
+                        tvLeftoverHint.setText(getString(R.string.savings_leftover_tip, amount));
                     }
                 }
                 // Compute and show progress percent
@@ -201,13 +205,13 @@ public class SavingsFragment extends Fragment {
                 }
                 if (tvGoalGuidance != null) {
                     if (ratio >= 1) {
-                        tvGoalGuidance.setText("Amazing! You've reached your monthly goal.");
+                        tvGoalGuidance.setText(R.string.savings_goal_guidance_complete);
                     } else if (ratio >= 0.6) {
-                        tvGoalGuidance.setText("You're on pace. Keep contributing to finish strong.");
+                        tvGoalGuidance.setText(R.string.savings_goal_guidance_ontrack);
                     } else if (fMonthSaved <= 0) {
-                        tvGoalGuidance.setText("Start with a small transfer today to kick off your savings momentum.");
+                        tvGoalGuidance.setText(R.string.savings_goal_guidance_start);
                     } else {
-                        tvGoalGuidance.setText("Increase contributions slightly to catch up with your monthly target.");
+                        tvGoalGuidance.setText(R.string.savings_goal_guidance_increase);
                     }
                 }
 

@@ -160,6 +160,7 @@ public class ProfileFragment extends Fragment {
         View btnLogout = root.findViewById(R.id.btn_profile_logout);
         if (btnLogout != null) {
             btnLogout.setOnClickListener(v -> {
+                new SessionManager(requireContext()).clear();
                 Intent i = new Intent(requireContext(), LoginActivity.class);
                 i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                 startActivity(i);

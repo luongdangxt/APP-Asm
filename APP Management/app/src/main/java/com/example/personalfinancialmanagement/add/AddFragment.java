@@ -73,20 +73,18 @@ public class AddFragment extends Fragment {
 
         if (cardAddIncome != null) {
             cardAddIncome.setOnClickListener(v -> {
-                if (currentAction == Action.INCOME) {
-                    openAddIncome(-1);
-                } else {
+                if (currentAction != Action.INCOME) {
                     setActiveAction(Action.INCOME);
                 }
+                openAddIncome(-1);
             });
         }
         if (cardAddExpense != null) {
             cardAddExpense.setOnClickListener(v -> {
-                if (currentAction == Action.EXPENSE) {
-                    openAddExpense(-1);
-                } else {
+                if (currentAction != Action.EXPENSE) {
                     setActiveAction(Action.EXPENSE);
                 }
+                openAddExpense(-1);
             });
         }
 

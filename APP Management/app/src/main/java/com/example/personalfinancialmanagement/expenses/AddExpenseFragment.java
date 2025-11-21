@@ -1,24 +1,35 @@
 package com.example.personalfinancialmanagement;
 
+import android.content.Context;
 import android.os.Bundle;
 import android.text.Editable;
+import android.text.InputType;
+import android.text.TextUtils;
 import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
+import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.Fragment;
+import androidx.core.content.ContextCompat;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.core.graphics.Insets;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+
+import com.example.personalfinancialmanagement.CategoryPreferences;
+import com.google.android.material.chip.Chip;
+import com.google.android.material.chip.ChipGroup;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
 import java.text.DateFormatSymbols;
 import java.text.NumberFormat;
@@ -38,7 +49,11 @@ public class AddExpenseFragment extends Fragment {
     private RecyclerView rvDays;
     private WeekDayAdapter dayAdapter;
     private EditText edTitle, edAmount;
-    private TextView chipHealth, chipGrocery, chipCustom;
+    private ChipGroup groupCategory;
+    private Chip chipOtherCategory;
+    private Chip templateCategoryChip;
+    private CategoryPreferences categoryPreferences;
+    private int lastCheckedChipId = View.NO_ID;
     private String selectedCategory = "Grocery";
 
     public static AddExpenseFragment newInstance(long userId) {
@@ -79,9 +94,10 @@ public class AddExpenseFragment extends Fragment {
         rvDays = root.findViewById(R.id.rv_days);
         edTitle = root.findViewById(R.id.ed_title);
         edAmount = root.findViewById(R.id.ed_amount);
-        chipHealth = root.findViewById(R.id.chip_health);
-        chipGrocery = root.findViewById(R.id.chip_grocery);
-        chipCustom = root.findViewById(R.id.chip_custom);
+        groupCategory = root.findViewById(R.id.group_expense_category);
+        chipOtherCategory = root.findViewById(R.id.chip_category_other);
+        templateCategoryChip = root.findViewById(R.id.chip_category_grocery);
+        categoryPreferences = new CategoryPreferences(requireContext());
 
         dayAdapter = new WeekDayAdapter();
         rvDays.setLayoutManager(new GridLayoutManager(requireContext(), 7));
@@ -90,10 +106,10 @@ public class AddExpenseFragment extends Fragment {
         root.findViewById(R.id.btn_prev_month).setOnClickListener(v -> { cal.add(Calendar.MONTH, -1); cal.set(Calendar.DAY_OF_MONTH, 1); refreshCalendar(); });
         root.findViewById(R.id.btn_next_month).setOnClickListener(v -> { cal.add(Calendar.MONTH, 1); cal.set(Calendar.DAY_OF_MONTH, 1); refreshCalendar(); });
 
-        View.OnClickListener catClick = v -> setCategory(((TextView)v).getText().toString());
-        chipHealth.setOnClickListener(catClick);
-        chipGrocery.setOnClickListener(catClick);
-        chipCustom.setOnClickListener(v -> Toast.makeText(requireContext(), "Tap a chip or type your own category in title.", Toast.LENGTH_SHORT).show());
+        addSavedCategoryChips();
+        bindChipGroup(groupCategory, chipOtherCategory, this::showCustomCategoryDialog, value -> {
+            selectedCategory = value;
+        });
 
         root.findViewById(R.id.btn_save_expense).setOnClickListener(v -> save());
 
@@ -119,16 +135,7 @@ public class AddExpenseFragment extends Fragment {
         });
 
         refreshCalendar();
-        setCategory(selectedCategory);
         return root;
-    }
-
-    private void setCategory(String name) {
-        selectedCategory = name;
-        chipHealth.setBackgroundResource(name.equals("Health") ? R.drawable.shape_pill_blue : R.drawable.shape_pill_white);
-        chipHealth.setTextColor(name.equals("Health") ? 0xFFFFFFFF : 0xFF424242);
-        chipGrocery.setBackgroundResource(name.equals("Grocery") ? R.drawable.shape_pill_blue : R.drawable.shape_pill_white);
-        chipGrocery.setTextColor(name.equals("Grocery") ? 0xFFFFFFFF : 0xFF424242);
     }
 
     private void refreshCalendar() {
@@ -154,8 +161,10 @@ public class AddExpenseFragment extends Fragment {
         final double fAmount = amount;
         final long fWhen = cal.getTimeInMillis();
         final String fCategory = selectedCategory;
+        final Context appCtx = requireContext().getApplicationContext();
         Async.runIo(() -> {
             expenseRepository.add(new Expense(userId, fTitle, fWhen, fAmount, fCategory));
+            BudgetAlertManager.onExpenseLogged(appCtx, userId, fCategory, fWhen);
             Async.runMain(() -> {
                 if (!isAdded()) return;
                 Toast.makeText(requireContext(), "Expense added", Toast.LENGTH_SHORT).show();
@@ -167,5 +176,178 @@ public class AddExpenseFragment extends Fragment {
         });
 
         
+    }
+
+    private void addSavedCategoryChips() {
+        if (groupCategory == null || categoryPreferences == null) return;
+        List<String> saved = categoryPreferences.getCustomExpenseCategories();
+        for (String label : saved) {
+            addCustomChipToGroup(label);
+        }
+    }
+
+    private void showCustomCategoryDialog() {
+        if (!isAdded() || groupCategory == null) return;
+        final int previousSelection = lastCheckedChipId;
+        if (chipOtherCategory != null) chipOtherCategory.setChecked(false);
+
+        final EditText input = new EditText(requireContext());
+        input.setHint("Enter category");
+        input.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_CAP_WORDS);
+
+        FrameLayout container = new FrameLayout(requireContext());
+        int pad = (int) dp(16);
+        container.setPadding(pad, pad, pad, 0);
+        FrameLayout.LayoutParams lp = new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        container.addView(input, lp);
+
+        AlertDialog dialog = new MaterialAlertDialogBuilder(requireContext())
+                .setTitle("Custom expense category")
+                .setView(container)
+                .setNegativeButton("Cancel", (d, w) -> restorePreviousSelection(previousSelection))
+                .setPositiveButton("Save", null)
+                .create();
+        dialog.setOnShowListener(d -> {
+            dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(v -> {
+                String value = CategoryPreferences.sanitizeLabel(input.getText().toString());
+                if (TextUtils.isEmpty(value)) {
+                    input.setError("Please enter a category");
+                    return;
+                }
+                if (categoryPreferences != null) {
+                    categoryPreferences.addCustomExpenseCategory(value);
+                }
+                Chip chip = findChipByTag(groupCategory, value);
+                if (chip == null) {
+                    chip = addCustomChipToGroup(value);
+                }
+                if (chip != null) {
+                    chip.setChecked(true);
+                }
+                dialog.dismiss();
+            });
+        });
+        dialog.show();
+    }
+
+    private void restorePreviousSelection(int previousSelection) {
+        if (groupCategory == null) return;
+        if (previousSelection == View.NO_ID && groupCategory.getChildCount() > 0) {
+            View child = groupCategory.getChildAt(0);
+            if (child instanceof Chip) {
+                ((Chip) child).setChecked(true);
+            }
+            return;
+        }
+        if (previousSelection != View.NO_ID) {
+            Chip prev = groupCategory.findViewById(previousSelection);
+            if (prev != null) prev.setChecked(true);
+        }
+    }
+
+    private Chip addCustomChipToGroup(String label) {
+        if (groupCategory == null) return null;
+        Chip chip = createChoiceChip(label);
+        int index = chipOtherCategory != null ? groupCategory.indexOfChild(chipOtherCategory) : groupCategory.getChildCount();
+        if (index < 0) index = groupCategory.getChildCount();
+        groupCategory.addView(chip, index);
+        return chip;
+    }
+
+    private Chip createChoiceChip(String label) {
+        Chip chip = (Chip) LayoutInflater.from(requireContext()).inflate(R.layout.view_choice_chip, groupCategory, false);
+        chip.setText(label);
+        chip.setTag(label);
+        chip.setEnsureMinTouchTargetSize(false);
+        applyTemplateLayout(chip);
+        return chip;
+    }
+
+    private void applyTemplateLayout(Chip chip) {
+        if (groupCategory == null) return;
+        Chip template = templateCategoryChip != null ? templateCategoryChip
+                : (chipOtherCategory != null ? chipOtherCategory : findFirstChip(groupCategory));
+        if (template == null) return;
+        ViewGroup.LayoutParams lp = template.getLayoutParams();
+        if (lp instanceof ViewGroup.MarginLayoutParams) {
+            ViewGroup.MarginLayoutParams newLp = new ViewGroup.MarginLayoutParams((ViewGroup.MarginLayoutParams) lp);
+            chip.setLayoutParams(newLp);
+        }
+        chip.setTextColor(template.getTextColors());
+        chip.setChipBackgroundColor(template.getChipBackgroundColor());
+        chip.setRippleColor(template.getRippleColor());
+        chip.setChipStrokeColor(template.getChipStrokeColor());
+        chip.setChipStrokeWidth(template.getChipStrokeWidth());
+        chip.setChipCornerRadius(template.getChipCornerRadius());
+        chip.setChipMinHeight(template.getChipMinHeight());
+        chip.setChipStartPadding(template.getChipStartPadding());
+        chip.setChipEndPadding(template.getChipEndPadding());
+        chip.setTextStartPadding(template.getTextStartPadding());
+        chip.setTextEndPadding(template.getTextEndPadding());
+    }
+
+    private Chip findFirstChip(ChipGroup group) {
+        if (group == null) return null;
+        for (int i = 0; i < group.getChildCount(); i++) {
+            View child = group.getChildAt(i);
+            if (child instanceof Chip) return (Chip) child;
+        }
+        return null;
+    }
+
+    private float dp(float value) {
+        return value * requireContext().getResources().getDisplayMetrics().density;
+    }
+
+    private Chip findChipByTag(ChipGroup group, String tag) {
+        if (group == null || TextUtils.isEmpty(tag)) return null;
+        for (int i = 0; i < group.getChildCount(); i++) {
+            View child = group.getChildAt(i);
+            if (child instanceof Chip) {
+                Object t = child.getTag();
+                if (t != null && tag.equals(t.toString())) {
+                    return (Chip) child;
+                }
+            }
+        }
+        return null;
+    }
+
+    private void bindChipGroup(ChipGroup group, Chip otherChip, Runnable onOtherSelected, ChipSelectionListener listener) {
+        if (group == null || listener == null) return;
+        group.setOnCheckedStateChangeListener((chipGroup, checkedIds) -> {
+            if (checkedIds == null || checkedIds.isEmpty()) return;
+            Chip chip = chipGroup.findViewById(checkedIds.get(0));
+            if (chip == null) return;
+            if (otherChip != null && chip.getId() == otherChip.getId()) {
+                chip.setChecked(false);
+                if (onOtherSelected != null) onOtherSelected.run();
+                return;
+            }
+            lastCheckedChipId = chip.getId();
+            listener.onValueSelected(resolveChipLabel(chip));
+        });
+        int checkedId = group.getCheckedChipId();
+        if (checkedId != View.NO_ID) {
+            Chip chip = group.findViewById(checkedId);
+            if (chip != null) {
+                lastCheckedChipId = chip.getId();
+                listener.onValueSelected(resolveChipLabel(chip));
+            }
+        } else if (group.getChildCount() > 0 && group.getChildAt(0) instanceof Chip) {
+            Chip chip = (Chip) group.getChildAt(0);
+            chip.setChecked(true);
+            lastCheckedChipId = chip.getId();
+            listener.onValueSelected(resolveChipLabel(chip));
+        }
+    }
+
+    private String resolveChipLabel(Chip chip) {
+        Object tag = chip.getTag();
+        return tag != null ? tag.toString() : chip.getText().toString();
+    }
+
+    private interface ChipSelectionListener {
+        void onValueSelected(String value);
     }
 }

@@ -46,18 +46,21 @@ class SavingsGoalAdapter extends RecyclerView.Adapter<SavingsGoalAdapter.VH> {
     @Override public void onBindViewHolder(@NonNull VH h, int i) {
         Item it = items.get(i);
         h.title.setText(it.goal.title);
-        h.current.setText(String.format(java.util.Locale.getDefault(), "$%,.0f saved", it.current));
-        h.target.setText(String.format(java.util.Locale.getDefault(), "Target: $%,.0f", it.goal.targetAmount));
+        android.content.Context ctx = h.itemView.getContext();
+        String currentVal = String.format(java.util.Locale.getDefault(), "$%,.0f", it.current);
+        String targetVal = String.format(java.util.Locale.getDefault(), "$%,.0f", it.goal.targetAmount);
+        h.current.setText(ctx.getString(R.string.savings_goal_saved_amount, currentVal));
+        h.target.setText(ctx.getString(R.string.savings_goal_target_amount, targetVal));
         int pct = it.goal.targetAmount <= 0 ? 0 : (int) Math.min(100, Math.round(it.current * 100 / it.goal.targetAmount));
         h.progress.setProgress(pct);
-        h.percent.setText(String.format(java.util.Locale.getDefault(), "%d%%", pct));
+        h.percent.setText(ctx.getString(R.string.savings_goal_percent, pct));
         double remaining = Math.max(0, it.goal.targetAmount - it.current);
-        h.remaining.setText(String.format(java.util.Locale.getDefault(), "%s remaining", String.format(java.util.Locale.getDefault(), "$%,.0f", remaining)));
+        String remainingVal = String.format(java.util.Locale.getDefault(), "$%,.0f", remaining);
+        h.remaining.setText(ctx.getString(R.string.savings_goal_remaining_amount, remainingVal));
 
-        // icon mapping by simple keys
         int res = R.drawable.ic_bag;
         if ("bike".equals(it.goal.iconKey)) res = R.drawable.ic_bike;
-        if ("phone".equals(it.goal.iconKey)) res = R.drawable.ic_task; // placeholder
+        if ("phone".equals(it.goal.iconKey)) res = R.drawable.ic_task;
         h.icon.setImageResource(res);
 
         h.btnMore.setOnClickListener(v -> moreClick.onMore(it.goal));

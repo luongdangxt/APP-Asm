@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="default_budget_categories">
+        <item>Groceries</item>
+        <item>Housing</item>
+        <item>Transport</item>
+        <item>Health</item>
+        <item>Education</item>
+        <item>Entertainment</item>
+        <item>Utilities</item>
+        <item>Family</item>
+        <item>Other</item>
+    </string-array>
+</resources>

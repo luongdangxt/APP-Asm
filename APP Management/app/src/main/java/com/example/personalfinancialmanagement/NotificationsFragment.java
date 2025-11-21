@@ -95,14 +95,14 @@ public class NotificationsFragment extends Fragment {
 
         View btnRefresh = root.findViewById(R.id.btn_refresh);
         if (btnRefresh != null) {
-            btnRefresh.setOnClickListener(v -> refresh(false));
+            btnRefresh.setOnClickListener(v -> refresh());
         }
 
         SwitchMaterial swUnread = root.findViewById(R.id.switch_unread_only);
         if (swUnread != null) {
             swUnread.setOnCheckedChangeListener((buttonView, isChecked) -> {
                 unreadOnly = isChecked;
-                refresh(false);
+                refresh();
             });
         }
 
@@ -116,7 +116,7 @@ public class NotificationsFragment extends Fragment {
                 else if (id == R.id.chip_reminders) currentFilter = NotificationRepository.TYPE_REMINDER;
                 else if (id == R.id.chip_system) currentFilter = NotificationRepository.TYPE_SYSTEM;
                 else currentFilter = "all";
-                refresh(false);
+                refresh();
             });
         }
 
@@ -129,18 +129,12 @@ public class NotificationsFragment extends Fragment {
             });
         }
 
-        refresh(true);
+        refresh();
         return root;
     }
 
-    private void refresh(boolean ensureSeed) {
+    private void refresh() {
         Async.runIo(() -> {
-            if (ensureSeed) {
-                try {
-                    repository.ensureSeeded(userId);
-                } catch (Throwable ignored) {
-                }
-            }
             List<AppNotification> items = repository.list(userId, currentFilter, unreadOnly);
             long unread = repository.unreadCount(userId);
             long total = repository.totalCount(userId);
@@ -163,7 +157,7 @@ public class NotificationsFragment extends Fragment {
     private void markAllRead() {
         Async.runIo(() -> {
             repository.markAllRead(userId);
-            refresh(false);
+            refresh();
         });
     }
 
@@ -180,7 +174,7 @@ public class NotificationsFragment extends Fragment {
     private void clearAll() {
         Async.runIo(() -> {
             repository.clear(userId);
-            refresh(true);
+            refresh();
         });
     }
 
@@ -189,7 +183,7 @@ public class NotificationsFragment extends Fragment {
         public void onToggleRead(AppNotification item, boolean markRead) {
             Async.runIo(() -> {
                 repository.markRead(item.id, markRead);
-                refresh(false);
+                refresh();
             });
         }
 
@@ -197,7 +191,7 @@ public class NotificationsFragment extends Fragment {
         public void onDelete(AppNotification item) {
             Async.runIo(() -> {
                 repository.delete(item.id);
-                refresh(false);
+                refresh();
             });
         }
 
@@ -205,7 +199,7 @@ public class NotificationsFragment extends Fragment {
         public void onAction(AppNotification item) {
             if (!isAdded()) return;
             Async.runIo(() -> repository.markRead(item.id, true));
-            refresh(false);
+            refresh();
             if (requireActivity() instanceof MainActivity) {
                 MainActivity main = (MainActivity) requireActivity();
                 switch (item.actionTarget != null ? item.actionTarget : "") {

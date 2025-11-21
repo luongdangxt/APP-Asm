@@ -21,4 +21,7 @@ public interface BudgetDao {
 
     @Query("SELECT * FROM budgets WHERE userId = :userId AND monthKey = :monthKey AND category = :category LIMIT 1")
     Budget find(long userId, int monthKey, String category);
+
+    @Query("DELETE FROM budgets WHERE id = :id")
+    int delete(long id);
 }

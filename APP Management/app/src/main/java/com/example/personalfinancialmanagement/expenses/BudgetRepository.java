@@ -4,14 +4,14 @@ import android.content.Context;
 
 import java.util.List;
 
-class BudgetRepository {
+public class BudgetRepository {
     private final BudgetDao budgetDao;
 
-    BudgetRepository(Context context) {
+    public BudgetRepository(Context context) {
         this.budgetDao = AppDatabase.getInstance(context).budgetDao();
     }
 
-    long upsert(long userId, int monthKey, String category, double limit) {
+    public long upsert(long userId, int monthKey, String category, double limit) {
         Budget existing = budgetDao.find(userId, monthKey, category);
         if (existing != null) {
             existing.limitAmount = limit;
@@ -21,7 +21,18 @@ class BudgetRepository {
         return budgetDao.upsert(new Budget(userId, monthKey, category, limit));
     }
 
-    List<Budget> listForMonth(long userId, int monthKey) {
+    public List<Budget> listForMonth(long userId, int monthKey) {
         return budgetDao.listForMonth(userId, monthKey);
+    }
+
+    public Budget find(long userId, int monthKey, String category) {
+        String normalized = CategoryPreferences.sanitizeLabel(category);
+        if (normalized.isEmpty()) return null;
+        return budgetDao.find(userId, monthKey, normalized);
+    }
+
+    public void delete(long id) {
+        if (id <= 0) return;
+        budgetDao.delete(id);
     }
 }

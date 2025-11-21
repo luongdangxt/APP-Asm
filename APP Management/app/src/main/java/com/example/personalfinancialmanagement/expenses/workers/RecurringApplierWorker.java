@@ -31,7 +31,9 @@ public class RecurringApplierWorker extends Worker {
         for (RecurringExpense r : items) {
             if (r.endDateUtc != null && r.endDateUtc < System.currentTimeMillis()) continue;
             if (today == r.dayOfMonth) {
-                expenseRepo.add(new Expense(userId, r.description, System.currentTimeMillis(), r.amount, r.category));
+                long now = System.currentTimeMillis();
+                expenseRepo.add(new Expense(userId, r.description, now, r.amount, r.category));
+                BudgetAlertManager.onExpenseLogged(ctx, userId, r.category, now);
             }
         }
         return Result.success();

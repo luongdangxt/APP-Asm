@@ -48,4 +48,9 @@ class BudgetDaoSqlite implements BudgetDao {
                 new String[]{String.valueOf(userId), String.valueOf(monthKey), category});
         Budget b = null; if (c.moveToFirst()) { b = new Budget(c.getLong(1), c.getInt(2), c.getString(3), c.getDouble(4)); b.id = c.getLong(0);} c.close(); return b;
     }
+
+    @Override public int delete(long id) {
+        SQLiteDatabase db = helper.getWritableDatabase();
+        return db.delete("budgets", "id=?", new String[]{String.valueOf(id)});
+    }
 }

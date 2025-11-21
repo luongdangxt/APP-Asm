@@ -15,8 +15,11 @@ import android.widget.Toast;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.google.android.material.checkbox.MaterialCheckBox;
+
 public class LoginActivity extends AppCompatActivity {
     private UserRepository userRepository;
+    private SessionManager sessionManager;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -33,11 +36,22 @@ public class LoginActivity extends AppCompatActivity {
         setContentView(R.layout.activity_login);
 
         userRepository = new UserRepository(this);
+        sessionManager = new SessionManager(this);
 
         EditText username = findViewById(R.id.username);
         EditText password = findViewById(R.id.password);
+        MaterialCheckBox rememberLogin = findViewById(R.id.cb_remember_login);
         Button login = findViewById(R.id.btn_login_button);
         TextView toRegister = findViewById(R.id.to_register);
+
+        if (rememberLogin != null) {
+            rememberLogin.setChecked(sessionManager.isRememberEnabled());
+        }
+        String rememberedUsername = sessionManager.getRememberedUsername();
+        if (rememberedUsername != null && !rememberedUsername.isEmpty()) {
+            username.setText(rememberedUsername);
+        }
+        attemptAutoLoginIfNeeded();
 
         login.setOnClickListener(v -> {
             final String u = username.getText().toString().trim();
@@ -51,10 +65,9 @@ public class LoginActivity extends AppCompatActivity {
                     User user = userRepository.login(u, p);
                     Async.runMain(() -> {
                         if (user != null) {
-                            Intent i = new Intent(this, MainActivity.class);
-                            i.putExtra("userId", user.id);
-                            startActivity(i);
-                            finish();
+                            boolean remember = rememberLogin != null && rememberLogin.isChecked();
+                            sessionManager.updateRememberedUser(remember, user.id, user.username);
+                            openMain(user.id);
                         } else {
                             Toast.makeText(this, "Invalid credentials", Toast.LENGTH_SHORT).show();
                         }
@@ -71,5 +84,28 @@ public class LoginActivity extends AppCompatActivity {
                 startActivity(new Intent(LoginActivity.this, RegisterActivity.class));
             }
         });
+    }
+
+    private void attemptAutoLoginIfNeeded() {
+        if (sessionManager == null || !sessionManager.shouldAutoLogin()) return;
+        final long userId = sessionManager.getRememberedUserId();
+        if (userId <= 0) return;
+        Async.runIo(() -> {
+            User user = userRepository.findById(userId);
+            Async.runMain(() -> {
+                if (user != null) {
+                    openMain(user.id);
+                } else {
+                    sessionManager.clear();
+                }
+            });
+        });
+    }
+
+    private void openMain(long userId) {
+        Intent i = new Intent(this, MainActivity.class);
+        i.putExtra("userId", userId);
+        startActivity(i);
+        finish();
     }
 }

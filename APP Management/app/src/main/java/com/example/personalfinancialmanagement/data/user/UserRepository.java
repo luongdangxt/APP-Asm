@@ -27,4 +27,9 @@ class UserRepository {
         if (hash.equals(user.passwordHash)) return user;
         return null;
     }
+
+    User findById(long id) {
+        if (id <= 0) return null;
+        return userDao.findById(id);
+    }
 }

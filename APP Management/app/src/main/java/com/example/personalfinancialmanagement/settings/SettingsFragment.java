@@ -4,7 +4,6 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ArrayAdapter;
 import android.widget.ImageButton;
 import android.widget.TextView;
 
@@ -17,7 +16,6 @@ import androidx.core.view.WindowInsetsCompat;
 import androidx.fragment.app.Fragment;
 
 import com.google.android.material.switchmaterial.SwitchMaterial;
-import com.google.android.material.textfield.MaterialAutoCompleteTextView;
 
 public class SettingsFragment extends Fragment {
     private void openUrl(String url) {
@@ -26,16 +24,18 @@ public class SettingsFragment extends Fragment {
 
     private void showManageAppData() {
         new com.google.android.material.dialog.MaterialAlertDialogBuilder(requireContext())
-                .setTitle("Manage App Data")
-                .setMessage("Clear this account's data (expenses, incomes, budgets, savings). Your account stays signed in.")
-                .setPositiveButton("Clear All", (d, w) -> {
+                .setTitle(R.string.settings_manage_data_title)
+                .setMessage(R.string.settings_manage_data_message)
+                .setPositiveButton(R.string.settings_manage_data_positive, (d, w) -> {
                     Async.runIo(() -> {
                         long uid = requireActivity().getIntent().getLongExtra("userId", -1);
                         try { AppDatabase.getInstance(requireContext()).clearUserData(uid); } catch (Throwable ignored) {}
-                        Async.runMain(() -> android.widget.Toast.makeText(requireContext(), "Cleared data for this account", android.widget.Toast.LENGTH_SHORT).show());
+                        try { new CategoryPreferences(requireContext()).clearAll(); } catch (Throwable ignored) {}
+                        try { new BudgetAlertTracker(requireContext()).clearAll(); } catch (Throwable ignored) {}
+                        Async.runMain(() -> android.widget.Toast.makeText(requireContext(), R.string.settings_manage_data_toast, android.widget.Toast.LENGTH_SHORT).show());
                     });
                 })
-                .setNegativeButton("Cancel", null)
+                .setNegativeButton(android.R.string.cancel, null)
                 .show();
     }
 
@@ -62,6 +62,7 @@ public class SettingsFragment extends Fragment {
 
         TextView tvThemeSummary = root.findViewById(R.id.tv_theme_summary);
         TextView tvNotificationSummary = root.findViewById(R.id.tv_notification_summary);
+        TextView tvLanguageSummary = root.findViewById(R.id.tv_language_summary);
 
         View feedback = root.findViewById(R.id.row_feedback);
         if (feedback != null) feedback.setOnClickListener(v -> {
@@ -72,17 +73,24 @@ public class SettingsFragment extends Fragment {
         });
 
         SettingsRepository prefs = new SettingsRepository(requireContext());
+        if (tvLanguageSummary != null) {
+            tvLanguageSummary.setText(AppLocaleManager.languageLabel(requireContext(), prefs.languageCode()));
+        }
 
         SwitchMaterial swNotif = root.findViewById(R.id.sw_notifications);
         if (swNotif != null) {
             swNotif.setChecked(prefs.notificationsEnabled());
             if (tvNotificationSummary != null) {
-                tvNotificationSummary.setText(swNotif.isChecked() ? "Stay informed about budgets and saving tips." : "Turn on alerts to receive budgeting reminders.");
+                tvNotificationSummary.setText(swNotif.isChecked()
+                        ? getString(R.string.settings_notifications_on)
+                        : getString(R.string.settings_notifications_off));
             }
             swNotif.setOnCheckedChangeListener((b, v) -> {
                 prefs.setNotificationsEnabled(v);
                 if (tvNotificationSummary != null) {
-                    tvNotificationSummary.setText(v ? "Stay informed about budgets and saving tips." : "Turn on alerts to receive budgeting reminders.");
+                    tvNotificationSummary.setText(v
+                            ? getString(R.string.settings_notifications_on)
+                            : getString(R.string.settings_notifications_off));
                 }
             });
         }
@@ -93,10 +101,10 @@ public class SettingsFragment extends Fragment {
                 tvThemeSummary.setText(themeSummaryText(prefs.themeMode()));
             }
             rowDark.setOnClickListener(v -> {
-                String[] items = new String[]{"System", "Light", "Dark"};
+                String[] items = getResources().getStringArray(R.array.settings_theme_options);
                 int mode = Math.max(0, Math.min(2, prefs.themeMode()));
                 new com.google.android.material.dialog.MaterialAlertDialogBuilder(requireContext())
-                        .setTitle("Dark Mode")
+                        .setTitle(R.string.settings_dark_mode_title)
                         .setSingleChoiceItems(items, mode, (d, which) -> {
                             prefs.setThemeMode(which);
                             if (tvThemeSummary != null) {
@@ -110,7 +118,7 @@ public class SettingsFragment extends Fragment {
                             d.dismiss();
                             requireActivity().recreate();
                         })
-                        .setNegativeButton("Cancel", null)
+                        .setNegativeButton(android.R.string.cancel, null)
                         .show();
             });
         }
@@ -127,8 +135,8 @@ public class SettingsFragment extends Fragment {
         if (rowShare != null) rowShare.setOnClickListener(v -> {
             android.content.Intent s = new android.content.Intent(android.content.Intent.ACTION_SEND);
             s.setType("text/plain");
-            s.putExtra(android.content.Intent.EXTRA_TEXT, "Check out this app!");
-            startActivity(android.content.Intent.createChooser(s, "Share App"));
+            s.putExtra(android.content.Intent.EXTRA_TEXT, getString(R.string.settings_share_body));
+            startActivity(android.content.Intent.createChooser(s, getString(R.string.settings_share_title)));
         });
         View rowPrivacy = root.findViewById(R.id.row_privacy);
         if (rowPrivacy != null) rowPrivacy.setOnClickListener(v -> openUrl("https://example.com/privacy"));
@@ -145,12 +153,18 @@ public class SettingsFragment extends Fragment {
             android.content.Intent email = new android.content.Intent(android.content.Intent.ACTION_SENDTO);
             email.setData(android.net.Uri.parse("mailto:"));
             email.putExtra(android.content.Intent.EXTRA_EMAIL, new String[]{"support@example.com"});
-            email.putExtra(android.content.Intent.EXTRA_SUBJECT, "PFM Support");
+            email.putExtra(android.content.Intent.EXTRA_SUBJECT, getString(R.string.settings_support_subject));
             startActivity(email);
         });
 
+        View rowLanguage = root.findViewById(R.id.row_language);
+        if (rowLanguage != null) {
+            rowLanguage.setOnClickListener(v -> showLanguageDialog(prefs, tvLanguageSummary));
+        }
+
         View logout = root.findViewById(R.id.btn_logout);
         if (logout != null) logout.setOnClickListener(v -> {
+            new SessionManager(requireContext()).clear();
             android.content.Intent i = new android.content.Intent(requireContext(), LoginActivity.class);
             i.addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK | android.content.Intent.FLAG_ACTIVITY_CLEAR_TASK);
             startActivity(i);
@@ -161,9 +175,42 @@ public class SettingsFragment extends Fragment {
 
     private String themeSummaryText(int mode) {
         switch (mode) {
-            case 1: return "Light appearance";
-            case 2: return "Always dark";
-            default: return "Follow system";
+            case 1: return getString(R.string.settings_theme_light);
+            case 2: return getString(R.string.settings_theme_dark);
+            default: return getString(R.string.settings_theme_follow_system);
         }
+    }
+
+    private void showLanguageDialog(SettingsRepository prefs, TextView summaryView) {
+        String[] codes = new String[]{AppLocaleManager.CODE_SYSTEM, AppLocaleManager.CODE_ENGLISH, AppLocaleManager.CODE_VIETNAMESE};
+        CharSequence[] labels = new CharSequence[]{
+                getString(R.string.settings_language_system),
+                getString(R.string.settings_language_english),
+                getString(R.string.settings_language_vietnamese)
+        };
+        String current = prefs.languageCode();
+        int checked = 0;
+        for (int i = 0; i < codes.length; i++) {
+            if (codes[i].equals(current)) {
+                checked = i;
+                break;
+            }
+        }
+        new com.google.android.material.dialog.MaterialAlertDialogBuilder(requireContext())
+                .setTitle(R.string.settings_language_title)
+                .setSingleChoiceItems(labels, checked, (d, which) -> {
+                    String code = codes[which];
+                    prefs.setLanguageCode(code);
+                    if (summaryView != null) {
+                        summaryView.setText(AppLocaleManager.languageLabel(requireContext(), code));
+                    }
+                    try {
+                        requireActivity().getIntent().putExtra("openSettingsOnCreate", true);
+                    } catch (Throwable ignored) {}
+                    AppLocaleManager.applyLocale(code);
+                    d.dismiss();
+                })
+                .setNegativeButton(android.R.string.cancel, null)
+                .show();
     }
 }
