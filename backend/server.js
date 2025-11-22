@@ -100,6 +100,14 @@ const savingsMonthlyGoalSchema = new mongoose.Schema({
 savingsMonthlyGoalSchema.index({ ownerId: 1, monthKey: 1 }, { unique: true });
 const SavingsMonthlyGoal = mongoose.model('SavingsMonthlyGoal', savingsMonthlyGoalSchema);
 
+const sourceSchema = new mongoose.Schema({
+  ownerId: { type: Number, required: true, index: true },
+  type: { type: String, required: true, enum: ['income', 'expense'] },
+  label: { type: String, required: true, trim: true }
+}, { timestamps: true });
+sourceSchema.index({ ownerId: 1, type: 1, label: 1 }, { unique: true });
+const Source = mongoose.model('Source', sourceSchema);
+
 const createToken = (user) => jwt.sign(
   { sub: user._id.toString(), clientId: user.clientId, username: user.username },
   JWT_SECRET,
@@ -540,6 +548,78 @@ financeRouter.post('/savings/monthly-goals', authRequired, async (req, res) => {
     res.status(201).json({ monthlyGoal });
   } catch (err) {
     console.error('Upsert monthly goal error', err);
+    res.status(500).json({ message: 'Unexpected error' });
+  }
+});
+
+// Custom sources (income/expense) tied to user
+const normalizeSourceLabel = (value) => {
+  if (!value || typeof value !== 'string') return '';
+  return value.trim().replace(/\s+/g, ' ');
+};
+const isValidSourceType = (value) => value === 'income' || value === 'expense';
+
+financeRouter.get('/sources', authRequired, async (req, res) => {
+  const ownerId = req.user.clientId;
+  const filter = { ownerId };
+  if (isValidSourceType(req.query.type)) filter.type = req.query.type;
+  const sources = await Source.find(filter).sort({ label: 1 }).lean();
+  res.json({ sources });
+});
+
+financeRouter.post('/sources', authRequired, async (req, res) => {
+  try {
+    const ownerId = req.user.clientId;
+    const type = req.body.type;
+    const label = normalizeSourceLabel(req.body.label);
+    if (!isValidSourceType(type) || !label) {
+      return res.status(400).json({ message: 'type (income/expense) and label are required' });
+    }
+    const existing = await Source.findOne({ ownerId, type, label }).lean();
+    if (existing) return res.status(409).json({ message: 'Source already exists' });
+    const source = await Source.create({ ownerId, type, label });
+    res.status(201).json({ source });
+  } catch (err) {
+    console.error('Create source error', err);
+    res.status(500).json({ message: 'Unexpected error' });
+  }
+});
+
+financeRouter.put('/sources/:id', authRequired, async (req, res) => {
+  try {
+    const ownerId = req.user.clientId;
+    const update = {};
+    if (req.body.type && isValidSourceType(req.body.type)) update.type = req.body.type;
+    if (req.body.label !== undefined) {
+      const label = normalizeSourceLabel(req.body.label);
+      if (!label) return res.status(400).json({ message: 'Label cannot be empty' });
+      update.label = label;
+    }
+    if (Object.keys(update).length === 0) return res.status(400).json({ message: 'No changes provided' });
+
+    const source = await Source.findOne({ _id: req.params.id, ownerId });
+    if (!source) return res.status(404).json({ message: 'Source not found' });
+    if (update.type) source.type = update.type;
+    if (update.label) source.label = update.label;
+    await source.save();
+    res.json({ source });
+  } catch (err) {
+    if (err && err.code === 11000) {
+      return res.status(409).json({ message: 'Source already exists' });
+    }
+    console.error('Update source error', err);
+    res.status(500).json({ message: 'Unexpected error' });
+  }
+});
+
+financeRouter.delete('/sources/:id', authRequired, async (req, res) => {
+  try {
+    const ownerId = req.user.clientId;
+    const result = await Source.findOneAndDelete({ _id: req.params.id, ownerId });
+    if (!result) return res.status(404).json({ message: 'Source not found' });
+    res.json({ message: 'Deleted' });
+  } catch (err) {
+    console.error('Delete source error', err);
     res.status(500).json({ message: 'Unexpected error' });
   }
 });
