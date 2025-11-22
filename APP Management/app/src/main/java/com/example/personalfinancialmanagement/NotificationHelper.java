@@ -3,10 +3,12 @@ package com.example.personalfinancialmanagement;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.content.Context;
+import android.content.pm.PackageManager;
 import android.os.Build;
 
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
+import androidx.core.content.ContextCompat;
 
 class NotificationHelper {
     static final String CHANNEL_ID = "app_updates_channel";
@@ -28,14 +30,24 @@ class NotificationHelper {
 
     private static void notify(Context context, int id, String title, String message) {
         ensureChannel(context);
+        if (!hasPostPermission(context)) return;
         NotificationCompat.Builder builder = new NotificationCompat.Builder(context, CHANNEL_ID)
-                .setSmallIcon(R.mipmap.ic_launcher)
+                .setSmallIcon(com.example.personalfinancialmanagement.R.mipmap.ic_launcher)
                 .setContentTitle(title)
                 .setContentText(message)
                 .setStyle(new NotificationCompat.BigTextStyle().bigText(message))
                 .setAutoCancel(true)
                 .setPriority(NotificationCompat.PRIORITY_DEFAULT);
-        NotificationManagerCompat.from(context).notify(id, builder.build());
+        try {
+            NotificationManagerCompat.from(context).notify(id, builder.build());
+        } catch (SecurityException ignored) {
+            // If permission is revoked between check and notify, skip gracefully.
+        }
+    }
+
+    private static boolean hasPostPermission(Context context) {
+        if (Build.VERSION.SDK_INT < 33) return true;
+        return ContextCompat.checkSelfPermission(context, android.Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED;
     }
 
     static void notifyBudget(Context context, String title, String message, int id) {

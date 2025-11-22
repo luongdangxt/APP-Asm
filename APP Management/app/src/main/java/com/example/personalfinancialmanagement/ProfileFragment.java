@@ -24,6 +24,7 @@ import com.example.personalfinancialmanagement.auth.LoginActivity;
 import com.example.personalfinancialmanagement.auth.PasswordHasher;
 import com.example.personalfinancialmanagement.data.user.User;
 import com.example.personalfinancialmanagement.data.user.UserDao;
+import com.example.personalfinancialmanagement.data.user.UserRepository;
 
 import java.util.Locale;
 import java.util.List;
@@ -72,6 +73,7 @@ public class ProfileFragment extends Fragment {
         EditText edNewPass = root.findViewById(R.id.ed_new_password);
         EditText edConfirm = root.findViewById(R.id.ed_confirm_password);
         UserDao userDao = AppDatabase.getInstance(requireContext()).userDao();
+        UserRepository userRepo = new UserRepository(requireContext());
         final User[] holder = new User[1];
         if (userId > 0) {
             Async.runIo(() -> {
@@ -98,8 +100,8 @@ public class ProfileFragment extends Fragment {
         });
 
         root.findViewById(R.id.btn_save).setOnClickListener(v -> {
-            User u = holder[0];
-            if (u == null) return;
+            final User current = holder[0];
+            if (current == null) return;
             String newName = edUsername.getText().toString().trim();
             String newPass = edNewPass.getText().toString();
             String confirm = edConfirm.getText().toString();
@@ -110,25 +112,31 @@ public class ProfileFragment extends Fragment {
             if (newName.isEmpty()) { Toast.makeText(requireContext(), "Username required", Toast.LENGTH_SHORT).show(); return; }
             Async.runIo(() -> {
                 User existing = userDao.findByUsername(newName);
-                if (existing != null && existing.id != u.id) {
+                if (existing != null && existing.id != current.id) {
                     Async.runMain(() -> Toast.makeText(requireContext(), "Username already exists", Toast.LENGTH_SHORT).show());
                     return;
                 }
-                u.username = newName;
-                u.fullName = fullName.isEmpty()? null : fullName;
-                u.email = email.isEmpty()? null : email;
-                u.phone = phone.isEmpty()? null : phone;
+                User working = current;
+                working.username = newName;
+                working.fullName = fullName.isEmpty()? null : fullName;
+                working.email = email.isEmpty()? null : email;
+                working.phone = phone.isEmpty()? null : phone;
                 if (!newPass.isEmpty()) {
                     if (!newPass.equals(confirm)) {
                         Async.runMain(() -> Toast.makeText(requireContext(), "Passwords do not match", Toast.LENGTH_SHORT).show());
                         return;
                     }
-                    u.passwordHash = PasswordHasher.sha256(newPass);
+                    working.passwordHash = PasswordHasher.sha256(newPass);
                 }
-                userDao.update(u);
+                User updatedRemote = userRepo.updateProfile(working);
+                if (updatedRemote != null) {
+                    working = updatedRemote;
+                }
+                userDao.update(working);
+                User finalU = working;
                 Async.runMain(() -> {
-                    tvName.setText(u.fullName != null && !u.fullName.trim().isEmpty() ? u.fullName : u.username);
-                    if (tvEmailSubtitle != null) tvEmailSubtitle.setText(u.email != null ? u.email : "Tap edit to add your email");
+                    tvName.setText(finalU.fullName != null && !finalU.fullName.trim().isEmpty() ? finalU.fullName : finalU.username);
+                    if (tvEmailSubtitle != null) tvEmailSubtitle.setText(finalU.email != null ? finalU.email : "Tap edit to add your email");
                     Toast.makeText(requireContext(), "Saved", Toast.LENGTH_SHORT).show();
                     setEditable(root, false, edUsername, edFullName, edEmail, edPhone, edNewPass, edConfirm);
                 });

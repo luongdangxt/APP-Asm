@@ -54,4 +54,19 @@ class SavingsContributionDaoSqlite implements SavingsContributionDao {
                 new String[]{String.valueOf(userId), String.valueOf(start), String.valueOf(end)});
         double sum = 0; if (c.moveToFirst()) sum = c.getDouble(0); c.close(); return sum;
     }
+
+    @Override public List<SavingsContribution> listForUser(long userId) {
+        SQLiteDatabase db = helper.getReadableDatabase();
+        Cursor c = db.rawQuery("SELECT id,userId,goalId,amount,dateUtc,isAuto FROM savings_contributions WHERE userId=? ORDER BY dateUtc DESC",
+                new String[]{String.valueOf(userId)});
+        ArrayList<SavingsContribution> list = new ArrayList<>();
+        while (c.moveToNext()) {
+            SavingsContribution sc = new SavingsContribution(c.getLong(1), c.isNull(2) ? null : c.getLong(2), c.getDouble(3), c.getLong(4));
+            sc.id = c.getLong(0);
+            sc.isAuto = c.getInt(5) == 1;
+            list.add(sc);
+        }
+        c.close();
+        return list;
+    }
 }

@@ -122,8 +122,11 @@ const authRequired = (req, res, next) => {
   }
 };
 
+const authRouter = express.Router();
+const financeRouter = express.Router();
+
 // Auth: register
-app.post('/auth/register', async (req, res) => {
+authRouter.post('/register', async (req, res) => {
   try {
     const { username, email, password } = req.body;
 
@@ -157,7 +160,7 @@ app.post('/auth/register', async (req, res) => {
 });
 
 // Auth: login
-app.post('/auth/login', async (req, res) => {
+authRouter.post('/login', async (req, res) => {
   try {
     const { username, email, password } = req.body;
 
@@ -197,7 +200,7 @@ app.post('/auth/login', async (req, res) => {
 });
 
 // Auth: fetch user by numeric clientId (for "remember me" lookup)
-app.get('/auth/user/:id', async (req, res) => {
+authRouter.get('/user/:id', async (req, res) => {
   try {
     const id = Number(req.params.id);
     if (!Number.isFinite(id) || id <= 0) {
@@ -210,6 +213,43 @@ app.get('/auth/user/:id', async (req, res) => {
     return res.json({ user: { id: user.clientId, username: user.username, email: user.email } });
   } catch (err) {
     console.error('Fetch user error', err);
+    return res.status(500).json({ message: 'Unexpected error' });
+  }
+});
+
+// Auth: get current user via JWT
+authRouter.get('/me', authRequired, async (req, res) => {
+  try {
+    const user = await User.findOne({ clientId: req.user.clientId }).lean();
+    if (!user) return res.status(404).json({ message: 'User not found' });
+    return res.json({ user: { id: user.clientId, username: user.username, email: user.email } });
+  } catch (err) {
+    console.error('Auth me error', err);
+    return res.status(500).json({ message: 'Unexpected error' });
+  }
+});
+
+// Auth: update profile (username/fullName/email/phone)
+authRouter.put('/profile', authRequired, async (req, res) => {
+  try {
+    const { username, fullName, email, phone } = req.body;
+    const update = {};
+    if (username) update.username = username.trim();
+    if (email) update.email = email.trim();
+    if (fullName !== undefined) update.fullName = fullName;
+    if (phone !== undefined) update.phone = phone;
+    if (Object.keys(update).length === 0) return res.status(400).json({ message: 'No changes provided' });
+
+    const existingUsername = update.username
+      ? await User.findOne({ username: update.username, clientId: { $ne: req.user.clientId } }).lean()
+      : null;
+    if (existingUsername) return res.status(409).json({ message: 'Username already exists' });
+
+    const user = await User.findOneAndUpdate({ clientId: req.user.clientId }, { $set: update }, { new: true });
+    if (!user) return res.status(404).json({ message: 'User not found' });
+    return res.json({ user: { id: user.clientId, username: user.username, email: user.email, fullName: user.fullName, phone: user.phone } });
+  } catch (err) {
+    console.error('Update profile error', err);
     return res.status(500).json({ message: 'Unexpected error' });
   }
 });
@@ -228,13 +268,13 @@ app.post('/notes', async (req, res) => {
 });
 
 // Expenses
-app.get('/expenses', authRequired, async (req, res) => {
+financeRouter.get('/expenses', authRequired, async (req, res) => {
   const ownerId = req.user.clientId;
   const expenses = await Expense.find({ ownerId }).sort({ dateUtc: -1 }).lean();
   res.json({ expenses });
 });
 
-app.post('/expenses', authRequired, async (req, res) => {
+financeRouter.post('/expenses', authRequired, async (req, res) => {
   try {
     const ownerId = req.user.clientId;
     const { description, amount, category, dateUtc } = req.body;
@@ -251,7 +291,7 @@ app.post('/expenses', authRequired, async (req, res) => {
   }
 });
 
-app.put('/expenses/:id', authRequired, async (req, res) => {
+financeRouter.put('/expenses/:id', authRequired, async (req, res) => {
   try {
     const ownerId = req.user.clientId;
     const { description, amount, category, dateUtc } = req.body;
@@ -269,7 +309,7 @@ app.put('/expenses/:id', authRequired, async (req, res) => {
   }
 });
 
-app.delete('/expenses/:id', authRequired, async (req, res) => {
+financeRouter.delete('/expenses/:id', authRequired, async (req, res) => {
   try {
     const ownerId = req.user.clientId;
     const result = await Expense.findOneAndDelete({ _id: req.params.id, ownerId });
@@ -282,13 +322,13 @@ app.delete('/expenses/:id', authRequired, async (req, res) => {
 });
 
 // Incomes
-app.get('/incomes', authRequired, async (req, res) => {
+financeRouter.get('/incomes', authRequired, async (req, res) => {
   const ownerId = req.user.clientId;
   const incomes = await Income.find({ ownerId }).sort({ dateUtc: -1 }).lean();
   res.json({ incomes });
 });
 
-app.post('/incomes', authRequired, async (req, res) => {
+financeRouter.post('/incomes', authRequired, async (req, res) => {
   try {
     const ownerId = req.user.clientId;
     const { title, category, amount, dateUtc } = req.body;
@@ -305,7 +345,7 @@ app.post('/incomes', authRequired, async (req, res) => {
   }
 });
 
-app.put('/incomes/:id', authRequired, async (req, res) => {
+financeRouter.put('/incomes/:id', authRequired, async (req, res) => {
   try {
     const ownerId = req.user.clientId;
     const { title, category, amount, dateUtc } = req.body;
@@ -323,7 +363,7 @@ app.put('/incomes/:id', authRequired, async (req, res) => {
   }
 });
 
-app.delete('/incomes/:id', authRequired, async (req, res) => {
+financeRouter.delete('/incomes/:id', authRequired, async (req, res) => {
   try {
     const ownerId = req.user.clientId;
     const result = await Income.findOneAndDelete({ _id: req.params.id, ownerId });
@@ -336,7 +376,7 @@ app.delete('/incomes/:id', authRequired, async (req, res) => {
 });
 
 // Budgets
-app.get('/budgets', authRequired, async (req, res) => {
+financeRouter.get('/budgets', authRequired, async (req, res) => {
   const ownerId = req.user.clientId;
   const filter = { ownerId };
   if (Number.isFinite(Number(req.query.monthKey))) filter.monthKey = Number(req.query.monthKey);
@@ -344,7 +384,7 @@ app.get('/budgets', authRequired, async (req, res) => {
   res.json({ budgets });
 });
 
-app.post('/budgets', authRequired, async (req, res) => {
+financeRouter.post('/budgets', authRequired, async (req, res) => {
   try {
     const ownerId = req.user.clientId;
     const { monthKey, category, limitAmount } = req.body;
@@ -365,7 +405,7 @@ app.post('/budgets', authRequired, async (req, res) => {
   }
 });
 
-app.delete('/budgets/:id', authRequired, async (req, res) => {
+financeRouter.delete('/budgets/:id', authRequired, async (req, res) => {
   try {
     const ownerId = req.user.clientId;
     const result = await Budget.findOneAndDelete({ _id: req.params.id, ownerId });
@@ -378,13 +418,13 @@ app.delete('/budgets/:id', authRequired, async (req, res) => {
 });
 
 // Savings goals
-app.get('/savings/goals', authRequired, async (req, res) => {
+financeRouter.get('/savings/goals', authRequired, async (req, res) => {
   const ownerId = req.user.clientId;
   const goals = await SavingsGoal.find({ ownerId }).sort({ createdAt: -1 }).lean();
   res.json({ goals });
 });
 
-app.post('/savings/goals', authRequired, async (req, res) => {
+financeRouter.post('/savings/goals', authRequired, async (req, res) => {
   try {
     const ownerId = req.user.clientId;
     const { title, targetAmount, iconKey, createdAtUtc, deadlineUtc, cadence } = req.body;
@@ -400,7 +440,7 @@ app.post('/savings/goals', authRequired, async (req, res) => {
   }
 });
 
-app.put('/savings/goals/:id', authRequired, async (req, res) => {
+financeRouter.put('/savings/goals/:id', authRequired, async (req, res) => {
   try {
     const ownerId = req.user.clientId;
     const update = {};
@@ -418,7 +458,7 @@ app.put('/savings/goals/:id', authRequired, async (req, res) => {
   }
 });
 
-app.delete('/savings/goals/:id', authRequired, async (req, res) => {
+financeRouter.delete('/savings/goals/:id', authRequired, async (req, res) => {
   try {
     const ownerId = req.user.clientId;
     const result = await SavingsGoal.findOneAndDelete({ _id: req.params.id, ownerId });
@@ -431,7 +471,7 @@ app.delete('/savings/goals/:id', authRequired, async (req, res) => {
 });
 
 // Savings contributions
-app.get('/savings/contributions', authRequired, async (req, res) => {
+financeRouter.get('/savings/contributions', authRequired, async (req, res) => {
   const ownerId = req.user.clientId;
   const filter = { ownerId };
   if (req.query.goalId) filter.goalId = req.query.goalId;
@@ -439,7 +479,7 @@ app.get('/savings/contributions', authRequired, async (req, res) => {
   res.json({ contributions });
 });
 
-app.post('/savings/contributions', authRequired, async (req, res) => {
+financeRouter.post('/savings/contributions', authRequired, async (req, res) => {
   try {
     const ownerId = req.user.clientId;
     const { goalId, amount, dateUtc, isAuto } = req.body;
@@ -462,7 +502,7 @@ app.post('/savings/contributions', authRequired, async (req, res) => {
   }
 });
 
-app.delete('/savings/contributions/:id', authRequired, async (req, res) => {
+financeRouter.delete('/savings/contributions/:id', authRequired, async (req, res) => {
   try {
     const ownerId = req.user.clientId;
     const result = await SavingsContribution.findOneAndDelete({ _id: req.params.id, ownerId });
@@ -475,7 +515,7 @@ app.delete('/savings/contributions/:id', authRequired, async (req, res) => {
 });
 
 // Savings monthly goals
-app.get('/savings/monthly-goals', authRequired, async (req, res) => {
+financeRouter.get('/savings/monthly-goals', authRequired, async (req, res) => {
   const ownerId = req.user.clientId;
   const filter = { ownerId };
   if (Number.isFinite(Number(req.query.monthKey))) filter.monthKey = Number(req.query.monthKey);
@@ -483,7 +523,7 @@ app.get('/savings/monthly-goals', authRequired, async (req, res) => {
   res.json({ monthlyGoals });
 });
 
-app.post('/savings/monthly-goals', authRequired, async (req, res) => {
+financeRouter.post('/savings/monthly-goals', authRequired, async (req, res) => {
   try {
     const ownerId = req.user.clientId;
     const { monthKey, targetAmount } = req.body;
@@ -502,6 +542,16 @@ app.post('/savings/monthly-goals', authRequired, async (req, res) => {
     console.error('Upsert monthly goal error', err);
     res.status(500).json({ message: 'Unexpected error' });
   }
+});
+
+// Routers
+app.use('/auth', authRouter);
+app.use('/', financeRouter); // finance endpoints already namespaced (/expenses, /incomes, /budgets, /savings/...)
+
+// Global error handler
+app.use((err, req, res, next) => {
+  console.error('Unhandled error', err);
+  res.status(500).json({ message: 'Unexpected error' });
 });
 
 app.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));

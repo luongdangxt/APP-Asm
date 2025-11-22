@@ -21,6 +21,9 @@ public interface SavingsContributionDao {
     @Query("SELECT * FROM savings_contributions WHERE userId = :userId AND goalId = :goalId ORDER BY dateUtc DESC")
     List<SavingsContribution> listForGoal(long userId, long goalId);
 
+    @Query("SELECT * FROM savings_contributions WHERE userId = :userId ORDER BY dateUtc DESC")
+    List<SavingsContribution> listForUser(long userId);
+
     @Query("SELECT COALESCE(SUM(amount), 0) FROM savings_contributions WHERE userId = :userId AND isAuto = 1 AND dateUtc BETWEEN :start AND :end")
     double sumAutoForMonth(long userId, long start, long end);
 }

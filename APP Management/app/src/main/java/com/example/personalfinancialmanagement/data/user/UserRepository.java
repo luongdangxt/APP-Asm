@@ -133,6 +133,32 @@ public class UserRepository {
         return null;
     }
 
+    /** Fetch current user using stored JWT (returns null if missing/invalid). */
+    public User fetchMeViaToken() {
+        lastError = null;
+        String token = session.getAuthToken();
+        if (token == null || token.trim().isEmpty()) return null;
+        try {
+            ApiResult result = request("GET", "/auth/me", null);
+            if (result.statusCode == 200 && result.json != null) {
+                JSONObject user = result.json.optJSONObject("user");
+                if (user != null) {
+                    long uid = user.optLong("id", -1L);
+                    String uname = user.optString("username", "");
+                    String email = user.optString("email", null);
+                    return new User(uid, uname, "", null, email, null);
+                }
+            }
+            // if unauthorized, clear token
+            if (result.statusCode == 401) session.saveAuthToken(null);
+            lastError = extractMessage(result.json, "Không lấy được thông tin người dùng");
+        } catch (IOException e) {
+            Log.e(TAG, "fetchMeViaToken error", e);
+            lastError = "Lỗi mạng";
+        }
+        return null;
+    }
+
     private ApiResult request(String method, String path, JSONObject body) throws IOException {
         HttpURLConnection conn = null;
         try {
@@ -211,6 +237,44 @@ public class UserRepository {
         if (token != null && !token.isEmpty()) {
             session.saveAuthToken(token);
         }
+    }
+
+    /** Update profile fields (username/fullName/email/phone) via API; returns updated user or null. */
+    public User updateProfile(User user) {
+        lastError = null;
+        if (user == null || user.id <= 0) { lastError = "Invalid user"; return null; }
+        JSONObject body = new JSONObject();
+        try {
+            if (user.username != null) body.put("username", user.username);
+            if (user.fullName != null) body.put("fullName", user.fullName);
+            if (user.email != null) body.put("email", user.email);
+            if (user.phone != null) body.put("phone", user.phone);
+        } catch (JSONException ignored) { }
+        try {
+            ApiResult result = request("PUT", "/auth/profile", body);
+            if (result.statusCode == 200 && result.json != null) {
+                JSONObject js = result.json.optJSONObject("user");
+                if (js != null) {
+                    User u = new User(
+                            js.optLong("id", user.id),
+                            js.optString("username", user.username),
+                            user.passwordHash,
+                            user.fullName,
+                            js.optString("email", user.email),
+                            js.optString("phone", user.phone)
+                    );
+                    u.fullName = js.optString("fullName", user.fullName);
+                    u.phone = js.optString("phone", user.phone);
+                    return u;
+                }
+            }
+            if (result.statusCode == 401) session.saveAuthToken(null);
+            lastError = extractMessage(result.json, "Không cập nhật được hồ sơ");
+        } catch (IOException e) {
+            Log.e(TAG, "updateProfile error", e);
+            lastError = "Lỗi mạng";
+        }
+        return null;
     }
 
     private static class ApiResult {

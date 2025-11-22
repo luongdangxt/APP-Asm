@@ -99,12 +99,16 @@ public class LoginActivity extends AppCompatActivity {
     private void attemptAutoLoginIfNeeded() {
         if (sessionManager == null || !sessionManager.shouldAutoLogin()) return;
         final long userId = sessionManager.getRememberedUserId();
-        if (userId <= 0) return;
         Async.runIo(() -> {
-            User user = userRepository.findById(userId);
+            // Try token-based auto login first
+            User user = userRepository.fetchMeViaToken();
+            if (user == null && userId > 0) {
+                user = userRepository.findById(userId);
+            }
+            User finalUser = user;
             Async.runMain(() -> {
-                if (user != null) {
-                    openMain(user.id);
+                if (finalUser != null && finalUser.id > 0) {
+                    openMain(finalUser.id);
                 } else {
                     sessionManager.clear();
                 }

@@ -5,7 +5,7 @@ import android.content.Context;
 import java.util.ArrayList;
 import java.util.List;
 
-class NotificationRepository {
+public class NotificationRepository {
     static final String TYPE_BUDGET = "budget";
     static final String TYPE_GOAL = "goal";
     static final String TYPE_REMINDER = "reminder";
