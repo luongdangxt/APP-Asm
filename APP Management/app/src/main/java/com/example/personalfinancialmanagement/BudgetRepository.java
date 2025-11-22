@@ -54,8 +54,13 @@ public class BudgetRepository {
         return budgetDao.find(userId, monthKey, normalized);
     }
 
-    public void delete(long id) {
-        if (id <= 0) return;
-        budgetDao.delete(id);
+    public void delete(long userId, int monthKey, String category) {
+        String normalized = CategoryPreferences.sanitizeLabel(category);
+        if (normalized.isEmpty()) return;
+        remote.deleteBudgetComposite(monthKey, normalized);
+        Budget existing = budgetDao.find(userId, monthKey, normalized);
+        if (existing != null) {
+            budgetDao.delete(existing.id);
+        }
     }
 }

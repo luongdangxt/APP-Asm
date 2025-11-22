@@ -93,4 +93,11 @@ public class SavingsRepository {
             monthlyGoalDao.update(g);
         }
     }
+
+    public void deleteGoal(long userId, SavingsGoal goal) {
+        if (goal == null) return;
+        remote.deleteSavingsGoal(userId, goal.title);
+        goalDao.delete(goal);
+        // Do not remove contributions; they stay as transaction history.
+    }
 }

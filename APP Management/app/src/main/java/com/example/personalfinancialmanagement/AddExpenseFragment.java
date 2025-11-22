@@ -30,6 +30,8 @@ import com.example.personalfinancialmanagement.CategoryPreferences;
 import com.google.android.material.chip.Chip;
 import com.google.android.material.chip.ChipGroup;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
+import com.example.personalfinancialmanagement.network.FinanceRemoteRepository;
+import com.example.personalfinancialmanagement.network.FinanceRemoteRepository.SourceItem;
 
 import java.text.DateFormatSymbols;
 import java.text.NumberFormat;
@@ -53,8 +55,10 @@ public class AddExpenseFragment extends Fragment {
     private Chip chipOtherCategory;
     private Chip templateCategoryChip;
     private CategoryPreferences categoryPreferences;
+    private FinanceRemoteRepository remoteRepo;
     private int lastCheckedChipId = View.NO_ID;
     private String selectedCategory = "Grocery";
+    private final List<SourceItem> remoteSources = new ArrayList<>();
 
     public static AddExpenseFragment newInstance(long userId) {
         return newInstance(userId, -1);
@@ -98,6 +102,7 @@ public class AddExpenseFragment extends Fragment {
         chipOtherCategory = root.findViewById(R.id.chip_category_other);
         templateCategoryChip = root.findViewById(R.id.chip_category_grocery);
         categoryPreferences = new CategoryPreferences(requireContext());
+        remoteRepo = new FinanceRemoteRepository(requireContext());
 
         dayAdapter = new WeekDayAdapter();
         rvDays.setLayoutManager(new GridLayoutManager(requireContext(), 7));
@@ -107,6 +112,7 @@ public class AddExpenseFragment extends Fragment {
         root.findViewById(R.id.btn_next_month).setOnClickListener(v -> { cal.add(Calendar.MONTH, 1); cal.set(Calendar.DAY_OF_MONTH, 1); refreshCalendar(); });
 
         addSavedCategoryChips();
+        fetchRemoteCategories();
         bindChipGroup(groupCategory, chipOtherCategory, this::showCustomCategoryDialog, value -> {
             selectedCategory = value;
         });
@@ -136,6 +142,24 @@ public class AddExpenseFragment extends Fragment {
 
         refreshCalendar();
         return root;
+    }
+
+    private void fetchRemoteCategories() {
+        Async.runIo(() -> {
+            List<SourceItem> list = remoteRepo.listSources("expense");
+            if (list != null) {
+                remoteSources.clear();
+                remoteSources.addAll(list);
+            }
+            Async.runMain(() -> {
+                if (!isAdded()) return;
+                if (list != null) {
+                    for (SourceItem item : list) {
+                        addCustomChipToGroup(item);
+                    }
+                }
+            });
+        });
     }
 
     private void refreshCalendar() {
@@ -182,7 +206,7 @@ public class AddExpenseFragment extends Fragment {
         if (groupCategory == null || categoryPreferences == null) return;
         List<String> saved = categoryPreferences.getCustomExpenseCategories();
         for (String label : saved) {
-            addCustomChipToGroup(label);
+            addCustomChipToGroup(new SourceItem(null, label, "expense"));
         }
     }
 
@@ -214,17 +238,7 @@ public class AddExpenseFragment extends Fragment {
                     input.setError("Please enter a category");
                     return;
                 }
-                if (categoryPreferences != null) {
-                    categoryPreferences.addCustomExpenseCategory(value);
-                }
-                Chip chip = findChipByTag(groupCategory, value);
-                if (chip == null) {
-                    chip = addCustomChipToGroup(value);
-                }
-                if (chip != null) {
-                    chip.setChecked(true);
-                }
-                dialog.dismiss();
+                saveNewExpenseCategory(value, dialog);
             });
         });
         dialog.show();
@@ -245,9 +259,22 @@ public class AddExpenseFragment extends Fragment {
         }
     }
 
-    private Chip addCustomChipToGroup(String label) {
-        if (groupCategory == null) return null;
+    private Chip addCustomChipToGroup(SourceItem source) {
+        if (groupCategory == null || source == null) return null;
+        String label = source.label;
+        Chip existing = findChipByLabel(groupCategory, label);
+        if (existing != null) {
+            if (source.id != null && !source.id.isEmpty()) {
+                existing.setTag(R.id.tag_source_object, source);
+            }
+            return existing;
+        }
         Chip chip = createChoiceChip(label);
+        chip.setTag(R.id.tag_source_object, source);
+        chip.setOnLongClickListener(v -> {
+            showSourceActions(chip, source);
+            return true;
+        });
         int index = chipOtherCategory != null ? groupCategory.indexOfChild(chipOtherCategory) : groupCategory.getChildCount();
         if (index < 0) index = groupCategory.getChildCount();
         groupCategory.addView(chip, index);
@@ -299,13 +326,13 @@ public class AddExpenseFragment extends Fragment {
         return value * requireContext().getResources().getDisplayMetrics().density;
     }
 
-    private Chip findChipByTag(ChipGroup group, String tag) {
+    private Chip findChipByLabel(ChipGroup group, String tag) {
         if (group == null || TextUtils.isEmpty(tag)) return null;
         for (int i = 0; i < group.getChildCount(); i++) {
             View child = group.getChildAt(i);
             if (child instanceof Chip) {
-                Object t = child.getTag();
-                if (t != null && tag.equals(t.toString())) {
+                String label = resolveChipLabel((Chip) child);
+                if (tag.equals(label)) {
                     return (Chip) child;
                 }
             }
@@ -344,7 +371,115 @@ public class AddExpenseFragment extends Fragment {
 
     private String resolveChipLabel(Chip chip) {
         Object tag = chip.getTag();
+        if (tag instanceof SourceItem) return ((SourceItem) tag).label;
+        Object sourceObj = chip.getTag(R.id.tag_source_object);
+        if (sourceObj instanceof SourceItem) return ((SourceItem) sourceObj).label;
         return tag != null ? tag.toString() : chip.getText().toString();
+    }
+
+    private void saveNewExpenseCategory(String value, AlertDialog dialog) {
+        Async.runIo(() -> {
+            SourceItem created = remoteRepo.createSource("expense", value);
+            boolean remoteOk = created != null;
+            if (!remoteOk) {
+                if (categoryPreferences != null) categoryPreferences.addCustomExpenseCategory(value);
+                created = new SourceItem(null, value, "expense");
+            } else if (categoryPreferences != null) {
+                categoryPreferences.addCustomExpenseCategory(created.label);
+            }
+            SourceItem finalCreated = created;
+            Async.runMain(() -> {
+                if (!isAdded()) return;
+                Chip chip = addCustomChipToGroup(finalCreated);
+                if (chip != null) chip.setChecked(true);
+                Toast.makeText(requireContext(), remoteOk ? "Saved" : "Saved offline", Toast.LENGTH_SHORT).show();
+                dialog.dismiss();
+            });
+        });
+    }
+
+    private void showSourceActions(Chip chip, SourceItem source) {
+        if (chip == null || source == null) return;
+        String[] options = new String[]{"Rename", "Delete"};
+        new MaterialAlertDialogBuilder(requireContext())
+                .setTitle(source.label)
+                .setItems(options, (d, which) -> {
+                    if (which == 0) {
+                        promptRename(chip, source);
+                    } else if (which == 1) {
+                        confirmDelete(chip, source);
+                    }
+                })
+                .show();
+    }
+
+    private void promptRename(Chip chip, SourceItem source) {
+        final EditText input = new EditText(requireContext());
+        input.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_CAP_WORDS);
+        input.setText(source.label);
+        FrameLayout container = new FrameLayout(requireContext());
+        int pad = (int) dp(16);
+        container.setPadding(pad, pad, pad, 0);
+        container.addView(input, new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+        new MaterialAlertDialogBuilder(requireContext())
+                .setTitle("Rename category")
+                .setView(container)
+                .setNegativeButton("Cancel", null)
+                .setPositiveButton("Save", (dialog, which) -> {
+                    String newLabel = CategoryPreferences.sanitizeLabel(input.getText().toString());
+                    if (TextUtils.isEmpty(newLabel)) {
+                        input.setError("Please enter a category");
+                        return;
+                    }
+                    renameSource(chip, source, newLabel);
+                })
+                .show();
+    }
+
+    private void renameSource(Chip chip, SourceItem source, String newLabel) {
+        String oldLabel = source.label;
+        Async.runIo(() -> {
+            SourceItem updated = source.id != null ? remoteRepo.updateSource(source.id, newLabel, source.type) : null;
+            boolean remoteOk = updated != null;
+            if (!remoteOk) {
+                updated = new SourceItem(source.id, newLabel, source.type);
+            }
+            if (categoryPreferences != null) {
+                categoryPreferences.renameCustomExpenseCategory(oldLabel, newLabel);
+            }
+            SourceItem finalUpdated = updated;
+            Async.runMain(() -> {
+                chip.setText(finalUpdated.label);
+                chip.setTag(finalUpdated.label);
+                chip.setTag(R.id.tag_source_object, finalUpdated);
+                if (chip.isChecked()) selectedCategory = finalUpdated.label;
+                Toast.makeText(requireContext(), remoteOk ? "Updated" : "Updated offline", Toast.LENGTH_SHORT).show();
+            });
+        });
+    }
+
+    private void confirmDelete(Chip chip, SourceItem source) {
+        new MaterialAlertDialogBuilder(requireContext())
+                .setTitle("Delete category")
+                .setMessage("Remove \"" + source.label + "\"?")
+                .setNegativeButton("Cancel", null)
+                .setPositiveButton("Delete", (d, w) -> deleteSource(chip, source))
+                .show();
+    }
+
+    private void deleteSource(Chip chip, SourceItem source) {
+        Async.runIo(() -> {
+            boolean remoteOk = source.id != null && remoteRepo.deleteSource(source.id);
+            if (categoryPreferences != null) categoryPreferences.removeCustomExpenseCategory(source.label);
+            Async.runMain(() -> {
+                if (groupCategory != null) groupCategory.removeView(chip);
+                if (chip.isChecked()) {
+                    lastCheckedChipId = View.NO_ID;
+                    bindChipGroup(groupCategory, chipOtherCategory, this::showCustomCategoryDialog, value -> selectedCategory = value);
+                }
+                Toast.makeText(requireContext(), remoteOk ? "Deleted" : "Deleted offline", Toast.LENGTH_SHORT).show();
+            });
+        });
     }
 
     private interface ChipSelectionListener {

@@ -29,10 +29,12 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
+import java.net.URLEncoder;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 /**
  * Lightweight network repository that talks to the Node backend for finance data.
@@ -50,6 +52,17 @@ public class FinanceRemoteRepository {
     private final SavingsGoalDao savingsGoalDao;
     private final SavingsContributionDao savingsContributionDao;
     private final SavingsMonthlyGoalDao savingsMonthlyGoalDao;
+
+    public static class SourceItem {
+        public final String id;
+        public final String label;
+        public final String type;
+        public SourceItem(String id, String label, String type) {
+            this.id = id;
+            this.label = label;
+            this.type = type;
+        }
+    }
 
     public FinanceRemoteRepository(Context ctx) {
         Context appCtx = ctx.getApplicationContext();
@@ -163,6 +176,24 @@ public class FinanceRemoteRepository {
         return budgetDao.upsert(new Budget(userId, monthKey, category, limit)) > 0;
     }
 
+    public boolean deleteBudgetComposite(int monthKey, String category) {
+        try {
+            // Try delete by remote id (more reliable if categories differ by casing/spacing)
+            String remoteId = findBudgetRemoteId(monthKey, category);
+            if (remoteId != null) {
+                ApiResult byId = request("DELETE", "/budgets/" + remoteId, null);
+                if (byId.statusCode == 200 || byId.statusCode == 404) return true;
+            }
+
+            String path = "/budgets?monthKey=" + monthKey + "&category=" + URLEncoder.encode(category, "UTF-8");
+            ApiResult r = request("DELETE", path, null);
+            return r.statusCode == 200 || r.statusCode == 404; // treat not found as success locally
+        } catch (Exception ex) {
+            Log.w(TAG, "deleteBudget remote failed", ex);
+            return false;
+        }
+    }
+
     /* ===================== Savings ===================== */
     public List<SavingsGoal> listSavingsGoals(long userId) {
         try {
@@ -189,6 +220,59 @@ public class FinanceRemoteRepository {
             Log.w(TAG, "addSavingsGoal remote failed, falling back", ex);
         }
         return savingsGoalDao.insert(new SavingsGoal(userId, title, targetAmount, iconKey, System.currentTimeMillis())) > 0;
+    }
+
+    public boolean deleteSavingsGoal(long userId, String title) {
+        // Try find id first (case-insensitive), then fallback to title endpoint
+        try {
+            List<SavingsGoal> goals = listSavingsGoals(userId);
+            if (goals != null && title != null) {
+                String normalized = title.trim().toLowerCase(java.util.Locale.getDefault());
+                for (SavingsGoal g : goals) {
+                    String cand = g.title == null ? "" : g.title.trim().toLowerCase(java.util.Locale.getDefault());
+                    if (!normalized.isEmpty() && normalized.equals(cand)) {
+                        // We don't store Mongo _id in local SavingsGoal, so listSavingsGoals must return objects with id set to Mongo _id in the JSON.
+                        // Use reflection-free field: check if g.iconKey holds id? It doesn't. So parse directly from API:
+                        // Instead of using DAO object, re-fetch raw JSON to get _id.
+                        break;
+                    }
+                }
+            }
+        } catch (Exception ignored) { }
+
+        // Fetch raw and delete by _id
+        try {
+            ApiResult rList = request("GET", "/savings/goals", null);
+            if (rList.statusCode == 200 && rList.json != null) {
+                JSONArray arr = rList.json.optJSONArray("goals");
+                if (arr != null) {
+                    String normalized = title == null ? "" : title.trim().toLowerCase(java.util.Locale.getDefault());
+                    for (int i = 0; i < arr.length(); i++) {
+                        JSONObject o = arr.optJSONObject(i);
+                        if (o == null) continue;
+                        String label = o.optString("title", "").trim().toLowerCase(java.util.Locale.getDefault());
+                        if (!normalized.isEmpty() && normalized.equals(label)) {
+                            String remoteId = o.optString("_id", null);
+                            if (remoteId != null && !remoteId.isEmpty()) {
+                                ApiResult rDel = request("DELETE", "/savings/goals/" + remoteId, null);
+                                if (rDel.statusCode == 200 || rDel.statusCode == 404) return true;
+                            }
+                        }
+                    }
+                }
+            }
+        } catch (Exception e) {
+            Log.w(TAG, "deleteSavingsGoal by id failed", e);
+        }
+
+        try {
+            String path = "/savings/goals?title=" + URLEncoder.encode(title == null ? "" : title, "UTF-8");
+            ApiResult r = request("DELETE", path, null);
+            return r.statusCode == 200 || r.statusCode == 404;
+        } catch (Exception e) {
+            Log.w(TAG, "deleteSavingsGoal remote failed", e);
+            return false;
+        }
     }
 
     public boolean addSavingsContribution(long userId, Long goalId, double amount, long dateUtc, boolean isAuto) {
@@ -258,6 +342,67 @@ public class FinanceRemoteRepository {
             savingsMonthlyGoalDao.update(g);
         }
         return true;
+    }
+
+    /* ===================== Sources (income/expense) ===================== */
+    public List<SourceItem> listSources(String type) {
+        try {
+            String path = "/sources";
+            if (type != null && (type.equals("income") || type.equals("expense"))) {
+                path += "?type=" + type;
+            }
+            ApiResult r = request("GET", path, null);
+            if (r.statusCode == 200 && r.json != null) {
+                return parseSources(r.json.optJSONArray("sources"));
+            }
+        } catch (IOException e) {
+            Log.w(TAG, "listSources remote failed", e);
+        }
+        return null;
+    }
+
+    public SourceItem createSource(String type, String label) {
+        try {
+            JSONObject body = new JSONObject();
+            body.put("type", type);
+            body.put("label", label);
+            ApiResult r = request("POST", "/sources", body);
+            if (r.statusCode == 201 && r.json != null) {
+                JSONObject o = r.json.optJSONObject("source");
+                if (o != null) return parseSourceObject(o);
+            }
+        } catch (Exception e) {
+            Log.w(TAG, "createSource failed", e);
+        }
+        return null;
+    }
+
+    public SourceItem updateSource(String id, String label, String type) {
+        if (id == null || id.isEmpty()) return null;
+        try {
+            JSONObject body = new JSONObject();
+            if (label != null) body.put("label", label);
+            if (type != null) body.put("type", type);
+            ApiResult r = request("PUT", "/sources/" + id, body);
+            if (r.statusCode == 200 && r.json != null) {
+                JSONObject o = r.json.optJSONObject("source");
+                if (o != null) return parseSourceObject(o);
+            }
+        } catch (Exception e) {
+            Log.w(TAG, "updateSource failed", e);
+        }
+        return null;
+    }
+
+    public boolean deleteSource(String id) {
+        if (id == null || id.isEmpty()) return false;
+        try {
+            ApiResult r = request("DELETE", "/sources/" + id, null);
+            return r.statusCode == 200;
+        } catch (IOException e) {
+            Log.w(TAG, "deleteSource failed", e);
+            return false;
+        }
     }
 
     /* ===================== Helpers ===================== */
@@ -353,6 +498,50 @@ public class FinanceRemoteRepository {
             list.add(c);
         }
         return list;
+    }
+
+    private List<SourceItem> parseSources(JSONArray arr) {
+        List<SourceItem> list = new ArrayList<>();
+        if (arr == null) return list;
+        for (int i = 0; i < arr.length(); i++) {
+            JSONObject o = arr.optJSONObject(i);
+            if (o == null) continue;
+            SourceItem item = parseSourceObject(o);
+            if (item != null) list.add(item);
+        }
+        return list;
+    }
+
+    private SourceItem parseSourceObject(JSONObject o) {
+        String id = o.optString("_id", "");
+        String label = o.optString("label", "");
+        String type = o.optString("type", "");
+        if (label.isEmpty() || type.isEmpty()) return null;
+        return new SourceItem(id, label, type);
+    }
+
+    private String findBudgetRemoteId(int monthKey, String category) {
+        try {
+            String path = "/budgets?monthKey=" + monthKey;
+            ApiResult r = request("GET", path, null);
+            if (r.statusCode == 200 && r.json != null) {
+                JSONArray arr = r.json.optJSONArray("budgets");
+                if (arr == null) return null;
+                String normalized = category == null ? "" : category.trim().toLowerCase(Locale.getDefault());
+                for (int i = 0; i < arr.length(); i++) {
+                    JSONObject o = arr.optJSONObject(i);
+                    if (o == null) continue;
+                    String cat = o.optString("category", "").trim().toLowerCase(Locale.getDefault());
+                    if (!normalized.isEmpty() && normalized.equals(cat)) {
+                        String id = o.optString("_id", null);
+                        if (id != null && !id.isEmpty()) return id;
+                    }
+                }
+            }
+        } catch (Exception ex) {
+            Log.w(TAG, "findBudgetRemoteId failed", ex);
+        }
+        return null;
     }
 
     private ApiResult request(String method, String path, JSONObject body) throws IOException {

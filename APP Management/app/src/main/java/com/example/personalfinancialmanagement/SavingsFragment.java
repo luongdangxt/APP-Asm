@@ -257,9 +257,9 @@ public class SavingsFragment extends Fragment {
     private void setMonthlyGoal(double value) {
         Async.runIo(() -> {
             long now = System.currentTimeMillis();
-            SavingsMonthlyGoal mg = repo.getOrCreateMonthlyGoal(userId, MonthUtils.monthKey(now), 200);
-            mg.targetAmount = value;
-            AppDatabase.getInstance(requireContext()).savingsMonthlyGoalDao().upsert(mg);
+            int monthKey = MonthUtils.monthKey(now);
+            repo.setMonthlyGoal(userId, monthKey, value);
+            Async.runMain(this::refresh);
         });
     }
 
@@ -296,7 +296,7 @@ public class SavingsFragment extends Fragment {
                         new MaterialAlertDialogBuilder(requireContext())
                                 .setTitle("Delete goal?")
                                 .setMessage("This will remove the goal. Existing contributions remain.")
-                                .setPositiveButton("Delete", (dd, w) -> Async.runIo(() -> { AppDatabase.getInstance(requireContext()).savingsGoalDao().delete(goal); Async.runMain(this::refresh); }))
+                                .setPositiveButton("Delete", (dd, w) -> Async.runIo(() -> { repo.deleteGoal(userId, goal); Async.runMain(this::refresh); }))
                                 .setNegativeButton("Cancel", null)
                                 .show();
                     }
@@ -326,7 +326,7 @@ public class SavingsFragment extends Fragment {
                                         new MaterialAlertDialogBuilder(requireContext())
                                                 .setTitle("Delete goal?")
                                                 .setMessage("This will remove the goal. Existing contributions remain.")
-                                                .setPositiveButton("Delete", (dd, w) -> Async.runIo(() -> { AppDatabase.getInstance(requireContext()).savingsGoalDao().delete(g); Async.runMain(this::refresh); }))
+                                                .setPositiveButton("Delete", (dd, w) -> Async.runIo(() -> { repo.deleteGoal(userId, g); Async.runMain(this::refresh); }))
                                                 .setNegativeButton("Cancel", null)
                                                 .show();
                                     }

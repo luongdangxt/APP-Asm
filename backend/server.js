@@ -398,12 +398,13 @@ financeRouter.post('/budgets', authRequired, async (req, res) => {
     const { monthKey, category, limitAmount } = req.body;
     const limit = Number(limitAmount);
     const month = Number(monthKey);
-    if (!Number.isFinite(month) || !category || !Number.isFinite(limit)) {
+    const normCategory = normalizeCategoryLabel(category);
+    if (!Number.isFinite(month) || !normCategory || !Number.isFinite(limit)) {
       return res.status(400).json({ message: 'Missing/invalid fields' });
     }
     const budget = await Budget.findOneAndUpdate(
-      { ownerId, monthKey: month, category },
-      { $set: { limitAmount: limit, updatedAt: new Date() } },
+      { ownerId, monthKey: month, category: normCategory },
+      { $set: { limitAmount: limit, category: normCategory, updatedAt: new Date() } },
       { new: true, upsert: true, setDefaultsOnInsert: true }
     );
     res.status(201).json({ budget });
@@ -413,6 +414,17 @@ financeRouter.post('/budgets', authRequired, async (req, res) => {
   }
 });
 
+const deleteBudgetEntry = async (filters) => {
+  for (const filter of filters) {
+    const found = await Budget.findOne(filter);
+    if (found) {
+      await Budget.deleteOne({ _id: found._id });
+      return found;
+    }
+  }
+  return null;
+};
+
 financeRouter.delete('/budgets/:id', authRequired, async (req, res) => {
   try {
     const ownerId = req.user.clientId;
@@ -421,6 +433,33 @@ financeRouter.delete('/budgets/:id', authRequired, async (req, res) => {
     res.json({ message: 'Deleted' });
   } catch (err) {
     console.error('Delete budget error', err);
+    res.status(500).json({ message: 'Unexpected error' });
+  }
+});
+
+// Budget delete by composite key (monthKey + category), tolerant for older data
+financeRouter.delete('/budgets', authRequired, async (req, res) => {
+  try {
+    const ownerId = req.user.clientId;
+    const monthKey = Number(req.query.monthKey);
+    const rawCategory = (req.query.category || '').toString();
+    const category = normalizeCategoryLabel(rawCategory);
+    if (!Number.isFinite(monthKey) || !category) {
+      return res.status(400).json({ message: 'monthKey and category are required' });
+    }
+
+    const regexCat = new RegExp(`^${escapeRegex(category)}$`, 'i');
+    const filters = [
+      { ownerId, monthKey, category },
+      { ownerId, monthKey, category: regexCat },
+      { monthKey, category },
+      { monthKey, category: regexCat }
+    ];
+    const result = await deleteBudgetEntry(filters);
+    if (!result) return res.status(404).json({ message: 'Budget not found' });
+    res.json({ message: 'Deleted' });
+  } catch (err) {
+    console.error('Delete budget (composite) error', err);
     res.status(500).json({ message: 'Unexpected error' });
   }
 });
@@ -436,11 +475,12 @@ financeRouter.post('/savings/goals', authRequired, async (req, res) => {
   try {
     const ownerId = req.user.clientId;
     const { title, targetAmount, iconKey, createdAtUtc, deadlineUtc, cadence } = req.body;
+    const normalizedTitle = normalizeGoalTitle(title);
     const target = Number(targetAmount);
-    if (!title || !Number.isFinite(target)) {
+    if (!normalizedTitle || !Number.isFinite(target)) {
       return res.status(400).json({ message: 'Missing/invalid fields' });
     }
-    const goal = await SavingsGoal.create({ ownerId, title, targetAmount: target, iconKey, createdAtUtc, deadlineUtc, cadence });
+    const goal = await SavingsGoal.create({ ownerId, title: normalizedTitle, targetAmount: target, iconKey, createdAtUtc, deadlineUtc, cadence });
     res.status(201).json({ goal });
   } catch (err) {
     console.error('Create savings goal error', err);
@@ -453,7 +493,7 @@ financeRouter.put('/savings/goals/:id', authRequired, async (req, res) => {
     const ownerId = req.user.clientId;
     const update = {};
     ['title', 'iconKey', 'cadence'].forEach((k) => {
-      if (req.body[k] !== undefined) update[k] = req.body[k];
+      if (req.body[k] !== undefined) update[k] = k === 'title' ? normalizeGoalTitle(req.body[k]) : req.body[k];
     });
     if (Number.isFinite(req.body.targetAmount)) update.targetAmount = req.body.targetAmount;
     if (Number.isFinite(Number(req.body.deadlineUtc))) update.deadlineUtc = Number(req.body.deadlineUtc);
@@ -474,6 +514,22 @@ financeRouter.delete('/savings/goals/:id', authRequired, async (req, res) => {
     res.json({ message: 'Deleted' });
   } catch (err) {
     console.error('Delete savings goal error', err);
+    res.status(500).json({ message: 'Unexpected error' });
+  }
+});
+
+// Delete savings goal by title (useful when client lacks Mongo _id)
+financeRouter.delete('/savings/goals', authRequired, async (req, res) => {
+  try {
+    const ownerId = req.user.clientId;
+    const title = normalizeGoalTitle(req.query.title);
+    if (!title) return res.status(400).json({ message: 'title is required' });
+    const regexTitle = new RegExp(`^${escapeRegex(title)}$`, 'i');
+    const goal = await SavingsGoal.findOneAndDelete({ ownerId, title: regexTitle });
+    if (!goal) return res.status(404).json({ message: 'Goal not found' });
+    res.json({ message: 'Deleted' });
+  } catch (err) {
+    console.error('Delete savings goal (title) error', err);
     res.status(500).json({ message: 'Unexpected error' });
   }
 });
@@ -558,6 +614,12 @@ const normalizeSourceLabel = (value) => {
   return value.trim().replace(/\s+/g, ' ');
 };
 const isValidSourceType = (value) => value === 'income' || value === 'expense';
+const normalizeCategoryLabel = (value) => {
+  if (!value || typeof value !== 'string') return '';
+  return value.trim().replace(/\s+/g, ' ');
+};
+const escapeRegex = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+const normalizeGoalTitle = normalizeCategoryLabel;
 
 financeRouter.get('/sources', authRequired, async (req, res) => {
   const ownerId = req.user.clientId;

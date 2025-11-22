@@ -40,6 +40,22 @@ public class CategoryPreferences {
         return addValue(KEY_INCOME, value);
     }
 
+    public boolean removeCustomExpenseCategory(String value) {
+        return removeValue(KEY_EXPENSE, value);
+    }
+
+    public boolean removeCustomIncomeSource(String value) {
+        return removeValue(KEY_INCOME, value);
+    }
+
+    public boolean renameCustomExpenseCategory(String oldValue, String newValue) {
+        return replaceValue(KEY_EXPENSE, oldValue, newValue);
+    }
+
+    public boolean renameCustomIncomeSource(String oldValue, String newValue) {
+        return replaceValue(KEY_INCOME, oldValue, newValue);
+    }
+
     private Set<String> getValues(String key) {
         Set<String> stored = prefs.getStringSet(key, Collections.emptySet());
         return new LinkedHashSet<>(stored);
@@ -54,6 +70,28 @@ public class CategoryPreferences {
             prefs.edit().putStringSet(key, copy).apply();
         }
         return added;
+    }
+
+    private boolean removeValue(String key, String value) {
+        String normalized = sanitizeLabel(value);
+        if (normalized.isEmpty()) return false;
+        Set<String> copy = getValues(key);
+        boolean removed = copy.remove(normalized);
+        if (removed) {
+            prefs.edit().putStringSet(key, copy).apply();
+        }
+        return removed;
+    }
+
+    private boolean replaceValue(String key, String oldValue, String newValue) {
+        String oldNorm = sanitizeLabel(oldValue);
+        String newNorm = sanitizeLabel(newValue);
+        if (oldNorm.isEmpty() || newNorm.isEmpty()) return false;
+        Set<String> copy = getValues(key);
+        if (!copy.remove(oldNorm)) return false;
+        copy.add(newNorm);
+        prefs.edit().putStringSet(key, copy).apply();
+        return true;
     }
 
     public static String sanitizeLabel(String input) {

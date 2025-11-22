@@ -251,8 +251,8 @@ public class ManageBudgetsActivity extends AppCompatActivity {
 
         private void deleteBudget(BudgetItem item) {
             Async.runIo(() -> {
-                budgetRepository.delete(item.id);
-                new BudgetAlertTracker(ManageBudgetsActivity.this).reset(userId, monthKey, item.category);
+                budgetRepository.delete(userId, item.monthKey, item.category);
+                new BudgetAlertTracker(ManageBudgetsActivity.this).reset(userId, item.monthKey, item.category);
                 Async.runMain(() -> {
                     Toast.makeText(ManageBudgetsActivity.this, getString(R.string.budget_removed), Toast.LENGTH_SHORT).show();
                     loadBudgets();
@@ -280,12 +280,14 @@ public class ManageBudgetsActivity extends AppCompatActivity {
         final String category;
         final double limit;
         final double spent;
+        final int monthKey;
 
         BudgetItem(Budget budget, double spent) {
             this.id = budget.id;
             this.category = budget.category;
             this.limit = budget.limitAmount;
             this.spent = spent;
+            this.monthKey = budget.monthKey;
         }
     }
 }
