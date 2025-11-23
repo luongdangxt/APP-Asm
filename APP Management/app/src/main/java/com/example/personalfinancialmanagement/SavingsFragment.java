@@ -117,10 +117,6 @@ public class SavingsFragment extends Fragment {
         Async.runIo(() -> {
             boolean userExists = false;
             try { userExists = AppDatabase.getInstance(requireContext()).userDao().findById(userId) != null; } catch (Throwable ignored) {}
-            if (userExists && repo.listGoals(userId).isEmpty()) {
-                try { repo.addGoal(userId, "New Bike", 600, "bike"); } catch (Throwable ignored) {}
-                try { repo.addGoal(userId, "Iphone 15 Pro", 1000, "phone"); } catch (Throwable ignored) {}
-            }
             Async.runMain(this::refresh);
         });
         // Trigger initial refresh (runs queries off UI thread inside refresh())

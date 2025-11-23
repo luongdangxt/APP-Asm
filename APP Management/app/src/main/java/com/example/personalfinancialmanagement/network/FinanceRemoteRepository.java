@@ -214,25 +214,34 @@ public class FinanceRemoteRepository {
             if (r.statusCode == 200 && r.json != null) {
                 return parseSavingsGoals(r.json.optJSONArray("goals"), userId);
             }
+            if (r.statusCode == 401 || r.statusCode == 403) {
+                session.saveAuthToken(null);
+                return java.util.Collections.emptyList();
+            }
+            return java.util.Collections.emptyList();
         } catch (IOException e) {
             Log.w(TAG, "listSavingsGoals remote failed, using local", e);
         }
+        // When offline, show local cache as fallback
         return savingsGoalDao.list(userId);
     }
 
-    public boolean addSavingsGoal(long userId, String title, double targetAmount, String iconKey) {
+    public boolean addSavingsGoal(long userId, String title, double targetAmount, String iconKey, Long deadlineUtc, Integer cadence) {
         try {
             JSONObject body = new JSONObject();
             body.put("title", title);
             body.put("targetAmount", targetAmount);
             body.put("iconKey", iconKey);
             body.put("createdAtUtc", System.currentTimeMillis());
+            if (deadlineUtc != null && deadlineUtc > 0) body.put("deadlineUtc", deadlineUtc);
+            if (cadence != null) body.put("cadence", cadence);
             ApiResult r = request("POST", "/savings/goals", body);
             if (r.statusCode == 201) return true;
         } catch (Exception ex) {
             Log.w(TAG, "addSavingsGoal remote failed, falling back", ex);
         }
-        return savingsGoalDao.insert(new SavingsGoal(userId, title, targetAmount, iconKey, System.currentTimeMillis())) > 0;
+        // If remote fails, do not insert sample/offline data to avoid divergence
+        return false;
     }
 
     public boolean deleteSavingsGoal(long userId, String title) {
@@ -300,7 +309,7 @@ public class FinanceRemoteRepository {
         } catch (Exception ex) {
             Log.w(TAG, "addSavingsContribution remote failed, falling back", ex);
         }
-        return savingsContributionDao.insert(new com.example.personalfinancialmanagement.SavingsContribution(userId, goalId, amount, dateUtc)) > 0;
+        return false;
     }
 
     public List<SavingsContribution> listSavingsContributions(long userId, Long goalId) {
@@ -312,9 +321,15 @@ public class FinanceRemoteRepository {
                 List<SavingsContribution> list = parseSavingsContributions(r.json.optJSONArray("contributions"), userId);
                 if (!list.isEmpty()) return list;
             }
+            if (r.statusCode == 401 || r.statusCode == 403) {
+                session.saveAuthToken(null);
+                return java.util.Collections.emptyList();
+            }
+            return java.util.Collections.emptyList();
         } catch (IOException e) {
             Log.w(TAG, "listSavingsContributions remote failed, using local", e);
         }
+        // Offline fallback
         if (goalId != null && goalId > 0) return savingsContributionDao.listForGoal(userId, goalId);
         return savingsContributionDao.listForUser(userId);
     }
@@ -326,15 +341,16 @@ public class FinanceRemoteRepository {
                 List<SavingsMonthlyGoal> list = parseSavingsMonthlyGoals(r.json.optJSONArray("monthlyGoals"), userId);
                 if (!list.isEmpty()) return list.get(0);
             }
+            if (r.statusCode == 401 || r.statusCode == 403) {
+                session.saveAuthToken(null);
+                return null;
+            }
+            return null;
         } catch (IOException e) {
             Log.w(TAG, "get monthly goal remote failed, using local", e);
         }
-        SavingsMonthlyGoal g = savingsMonthlyGoalDao.find(userId, monthKey);
-        if (g == null) {
-            g = new SavingsMonthlyGoal(userId, monthKey, defaultTarget);
-            g.id = savingsMonthlyGoalDao.upsert(g);
-        }
-        return g;
+        // Offline fallback
+        return savingsMonthlyGoalDao.find(userId, monthKey);
     }
 
     public boolean setMonthlyGoal(long userId, int monthKey, double targetAmount) {
@@ -347,14 +363,7 @@ public class FinanceRemoteRepository {
         } catch (Exception ex) {
             Log.w(TAG, "setMonthlyGoal remote failed, falling back", ex);
         }
-        SavingsMonthlyGoal g = savingsMonthlyGoalDao.find(userId, monthKey);
-        if (g == null) {
-            savingsMonthlyGoalDao.upsert(new SavingsMonthlyGoal(userId, monthKey, targetAmount));
-        } else {
-            g.targetAmount = targetAmount;
-            savingsMonthlyGoalDao.update(g);
-        }
-        return true;
+        return false;
     }
 
     /* ===================== Sources (income/expense) ===================== */

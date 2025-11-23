@@ -84,22 +84,7 @@ public class AddGoalFragment extends Fragment {
             til.setEndIconOnClickListener(v -> openPicker.run());
         } catch (Exception ignored) {}
 
-        if (editingGoalId > 0) {
-            Async.runIo(() -> {
-                SavingsGoal g = AppDatabase.getInstance(appCtx).savingsGoalDao().findById(editingGoalId);
-                Async.runMain(() -> {
-                    if (!isAdded()) return;
-                    if (g != null) {
-                        etTitle.setText(g.title);
-                        etAmount.setText(String.valueOf((long) g.targetAmount));
-                        deadline.setTimeInMillis(g.deadlineUtc > 0 ? g.deadlineUtc : System.currentTimeMillis());
-                        etDeadline.setText(df.format(deadline.getTime()));
-                        int idx = Math.max(0, Math.min(3, g.cadence));
-                        drop.setText(items[idx], false);
-                    }
-                });
-            });
-        }
+        // Editing existing goals would require fetching from server; local cache removed.
 
         Button save = root.findViewById(R.id.btn_save);
         save.setOnClickListener(v -> {
@@ -113,19 +98,13 @@ public class AddGoalFragment extends Fragment {
                 final int fCadence = cadence;
                 final long fDeadline = deadline.getTimeInMillis();
                 Async.runIo(() -> {
-                    SavingsGoalDao dao = AppDatabase.getInstance(appCtx).savingsGoalDao();
-                    if (editingGoalId > 0) {
-                        SavingsGoal g = dao.findById(editingGoalId);
-                        if (g != null) {
-                            g.title = fTitle; g.targetAmount = fAmt; g.deadlineUtc = fDeadline; g.cadence = fCadence; dao.update(g);
-                        }
-                    } else {
-                        SavingsRepository repo = new SavingsRepository(appCtx);
-                        long id = repo.addGoal(userId, fTitle, fAmt, "bag");
-                        SavingsGoal g = dao.findById(id);
-                        if (g != null) { g.deadlineUtc = fDeadline; g.cadence = fCadence; dao.update(g); }
-                    }
-                    Async.runMain(() -> { if (getActivity()!=null) getActivity().getSupportFragmentManager().popBackStack(); });
+                    SavingsRepository repo = new SavingsRepository(appCtx);
+                    boolean ok = repo.addGoal(userId, fTitle, fAmt, "bag", fDeadline, fCadence);
+                    Async.runMain(() -> {
+                        if (!isAdded()) return;
+                        if (ok && getActivity()!=null) getActivity().getSupportFragmentManager().popBackStack();
+                        // else keep screen so user can retry
+                    });
                 });
             }
         });
