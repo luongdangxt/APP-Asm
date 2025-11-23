@@ -13,8 +13,8 @@ android {
         versionCode = 1
         versionName = "1.0"
 
-        // Default API base (emulator -> host). Override for device builds below if needed.
-        buildConfigField("String", "API_BASE_URL", "\"http://10.0.2.2:3000\"")
+        // Default API base points to Render deployment
+        buildConfigField("String", "API_BASE_URL", "\"https://backend-app-asm.onrender.com\"")
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }

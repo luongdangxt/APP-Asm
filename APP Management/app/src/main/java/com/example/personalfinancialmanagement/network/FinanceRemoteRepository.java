@@ -33,6 +33,7 @@ import java.net.URLEncoder;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 
@@ -83,9 +84,16 @@ public class FinanceRemoteRepository {
             if (r.statusCode == 200 && r.json != null) {
                 return parseExpenses(r.json.optJSONArray("expenses"), userId);
             }
+            if (r.statusCode == 401 || r.statusCode == 403) {
+                session.saveAuthToken(null);
+                return Collections.emptyList();
+            }
+            // avoid showing stale local data if server responded but no data/other status
+            return Collections.emptyList();
         } catch (IOException e) {
             Log.w(TAG, "listExpenses remote failed, using local", e);
         }
+        // Only fallback to local cache when truly offline
         long now = System.currentTimeMillis();
         long start = MonthUtils.monthStartUtcMillis(now);
         long end = MonthUtils.monthEndUtcMillis(now);
@@ -116,6 +124,11 @@ public class FinanceRemoteRepository {
             if (r.statusCode == 200 && r.json != null) {
                 return parseIncomes(r.json.optJSONArray("incomes"), userId);
             }
+            if (r.statusCode == 401 || r.statusCode == 403) {
+                session.saveAuthToken(null);
+                return Collections.emptyList();
+            }
+            return Collections.emptyList();
         } catch (IOException e) {
             Log.w(TAG, "listIncomes remote failed, using local", e);
         }
@@ -593,17 +606,7 @@ public class FinanceRemoteRepository {
     }
 
     private static String resolveBaseUrl() {
-        String fallback = "http://10.0.2.2:3000";
-        try {
-            Class<?> clazz = Class.forName("com.example.personalfinancialmanagement.BuildConfig");
-            java.lang.reflect.Field f = clazz.getField("API_BASE_URL");
-            Object val = f.get(null);
-            if (val instanceof String) {
-                String s = (String) val;
-                if (!s.isEmpty()) return s;
-            }
-        } catch (Throwable ignored) { }
-        return fallback;
+        return com.example.personalfinancialmanagement.BuildConfig.API_BASE_URL;
     }
 
     private static class ApiResult {

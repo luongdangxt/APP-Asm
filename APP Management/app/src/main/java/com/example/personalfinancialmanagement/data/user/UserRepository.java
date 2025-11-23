@@ -218,17 +218,7 @@ public class UserRepository {
     }
 
     private static String resolveBaseUrl() {
-        String fallback = "http://10.0.2.2:3000";
-        try {
-            Class<?> clazz = Class.forName("com.example.personalfinancialmanagement.BuildConfig");
-            java.lang.reflect.Field f = clazz.getField("API_BASE_URL");
-            Object val = f.get(null);
-            if (val instanceof String) {
-                String s = (String) val;
-                if (!s.isEmpty()) return s;
-            }
-        } catch (Throwable ignored) { }
-        return fallback;
+        return com.example.personalfinancialmanagement.BuildConfig.API_BASE_URL;
     }
 
     private void saveTokenIfPresent(JSONObject json) {

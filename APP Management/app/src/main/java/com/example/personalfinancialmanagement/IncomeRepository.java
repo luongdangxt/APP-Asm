@@ -4,6 +4,7 @@ import android.content.Context;
 
 import java.util.List;
 import java.util.ArrayList;
+import java.util.Collections;
 
 import com.example.personalfinancialmanagement.network.FinanceRemoteRepository;
 
@@ -26,7 +27,8 @@ public class IncomeRepository {
     }
     public List<Income> latest(long userId, int limit) {
         List<Income> remoteList = remote.listIncomes(userId);
-        if (remoteList != null && !remoteList.isEmpty()) {
+        if (remoteList != null) {
+            if (remoteList.isEmpty()) return Collections.emptyList();
             remoteList.sort((a,b)->Long.compare(b.dateUtc, a.dateUtc));
             return remoteList.subList(0, Math.min(limit, remoteList.size()));
         }
@@ -39,7 +41,7 @@ public class IncomeRepository {
         if (remoteList != null) {
             List<Income> filtered = new ArrayList<>();
             for (Income in : remoteList) if (in.dateUtc >= start && in.dateUtc <= end) filtered.add(in);
-            if (!filtered.isEmpty()) return filtered;
+            return filtered;
         }
         return incomeDao.listByDateRange(userId, start, end);
     }
@@ -51,7 +53,7 @@ public class IncomeRepository {
         if (remoteList != null) {
             List<Income> filtered = new ArrayList<>();
             for (Income in : remoteList) if (in.dateUtc >= start && in.dateUtc <= end) filtered.add(in);
-            if (!filtered.isEmpty()) return filtered;
+            return filtered;
         }
         return incomeDao.listByDateRange(userId, start, end);
     }
