@@ -12,4 +12,15 @@
     <color name="icon_circle_bg">#2B3440</color>
     <color name="app_gradient_start">#2B3440</color>
     <color name="app_gradient_end">#161B24</color>
+    <color name="reportBackground">@color/surfaceLight</color>
+    <color name="reportCard">@color/surfaceCard</color>
+    <color name="reportCardMuted">#2F3339</color>
+    <color name="reportChip">#2F3339</color>
+    <color name="reportChipTint">@color/textSecondary</color>
+    <color name="reportDivider">#2F3644</color>
+    <color name="reportPositive">#34D399</color>
+    <color name="reportNegative">#F87171</color>
+    <color name="reportAccentStart">#00C2FF</color>
+    <color name="reportAccentEnd">#7C5CFF</color>
+    <color name="reportDonutTrack">@color/icon_circle_bg</color>
 </resources>

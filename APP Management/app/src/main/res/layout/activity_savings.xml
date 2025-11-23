@@ -43,7 +43,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginStart="8dp"
                     android:layout_weight="1"
-                    android:text="Savings" />
+                    android:text="@string/savings_title" />
 
                 <ImageButton
                     android:id="@+id/btn_goals_more"
@@ -67,7 +67,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Current Savings"
+                    android:text="@string/savings_current_total"
                     android:textColor="@color/textSecondary"
                     android:textStyle="bold" />
 
@@ -76,7 +76,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="8dp"
-                    android:text="$0"
+                    android:text="@string/savings_amount_placeholder"
                     android:textColor="@color/primaryBlue"
                     android:textSize="32sp"
                     android:textStyle="bold" />
@@ -97,7 +97,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Income this month"
+                            android:text="@string/savings_income_label"
                             android:textColor="@color/textSecondary"
                             android:textSize="12sp" />
 
@@ -106,7 +106,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="4dp"
-                            android:text="$0"
+                            android:text="@string/savings_amount_placeholder"
                             android:textColor="@color/textPrimary"
                             android:textStyle="bold" />
                     </LinearLayout>
@@ -120,7 +120,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Expense this month"
+                            android:text="@string/savings_expense_label"
                             android:textColor="@color/textSecondary"
                             android:textSize="12sp" />
 
@@ -129,7 +129,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="4dp"
-                            android:text="$0"
+                            android:text="@string/savings_amount_placeholder"
                             android:textColor="@color/textPrimary"
                             android:textStyle="bold" />
                     </LinearLayout>
@@ -156,7 +156,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Auto contributions"
+                            android:text="@string/savings_auto_contrib_label"
                             android:textColor="@color/textSecondary"
                             android:textSize="12sp" />
 
@@ -165,7 +165,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="4dp"
-                            android:text="$0"
+                            android:text="@string/savings_amount_placeholder"
                             android:textColor="@color/textPrimary"
                             android:textStyle="bold" />
                     </LinearLayout>
@@ -179,7 +179,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Leftover suggestion"
+                            android:text="@string/savings_leftover_label"
                             android:textColor="@color/textSecondary"
                             android:textSize="12sp" />
 
@@ -188,7 +188,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="4dp"
-                            android:text="$0 available"
+                            android:text="@string/savings_leftover_placeholder"
                             android:textColor="@color/textPrimary"
                             android:textStyle="bold" />
                     </LinearLayout>
@@ -221,7 +221,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginStart="12dp"
                         android:layout_weight="1"
-                        android:text="November"
+                        android:text="@string/savings_month_label"
                         android:textColor="@color/textPrimary"
                         android:textStyle="bold" />
 
@@ -230,7 +230,7 @@
                         style="@style/Widget.Material3.Button.TextButton"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Adjust"
+                        android:text="@string/savings_adjust"
                         android:textAllCaps="false"
                         android:textColor="@color/primaryBlue" />
                 </LinearLayout>
@@ -239,7 +239,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="12dp"
-                    android:text="Goal for this month"
+                    android:text="@string/savings_goal_title"
                     android:textColor="@color/textSecondary" />
 
                 <TextView
@@ -247,7 +247,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="4dp"
-                    android:text="Target: $0"
+                    android:text="@string/savings_goal_target_placeholder"
                     android:textColor="@color/textPrimary"
                     android:textStyle="bold" />
 
@@ -261,20 +261,22 @@
                         android:id="@+id/goal_bar_track"
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
-                        android:background="@drawable/shape_pill_grey" />
+                        android:background="@drawable/bg_goal_track" />
 
                     <View
                         android:id="@+id/goal_bar_fill"
                         android:layout_width="0dp"
                         android:layout_height="match_parent"
-                        android:background="@drawable/shape_pill_blue" />
+                        android:layout_margin="3dp"
+                        android:layout_gravity="center_vertical"
+                        android:background="@drawable/bg_goal_fill" />
 
                     <TextView
                         android:id="@+id/tv_goal_amount"
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
                         android:gravity="center"
-                        android:text="$0 • 0%"
+                        android:text="@string/savings_goal_progress_placeholder"
                         android:textColor="@color/textPrimary"
                         android:textStyle="bold" />
                 </FrameLayout>
@@ -284,7 +286,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="12dp"
-                    android:text="Review your goal weekly to keep momentum."
+                    android:text="@string/savings_goal_tip"
                     android:textColor="@color/textSecondary"
                     android:textSize="12sp" />
             </LinearLayout>
@@ -300,7 +302,7 @@
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Quick actions"
+                    android:text="@string/savings_quick_actions"
                     android:textColor="@color/textSecondary"
                     android:textStyle="bold" />
 
@@ -320,7 +322,7 @@
                         android:layout_weight="1"
                         android:insetTop="0dp"
                         android:insetBottom="0dp"
-                        android:text="New goal"
+                        android:text="@string/savings_new_goal"
                         android:textAllCaps="false" />
 
                     <com.google.android.material.button.MaterialButton
@@ -331,7 +333,7 @@
                         android:layout_weight="1"
                         android:insetTop="0dp"
                         android:insetBottom="0dp"
-                        android:text="Manage goals"
+                        android:text="@string/savings_manage_goals"
                         android:textAllCaps="false" />
                 </LinearLayout>
 
@@ -340,7 +342,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="12dp"
-                    android:text="Tip: Allocate part of today's leftover to your top goal."
+                    android:text="@string/savings_tip_text"
                     android:textColor="@color/textSecondary"
                     android:textSize="12sp" />
             </LinearLayout>
@@ -363,7 +365,7 @@
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:text="Your goals"
+                        android:text="@string/savings_your_goals"
                         android:textColor="@color/textPrimary"
                         android:textStyle="bold" />
 
@@ -372,7 +374,7 @@
                         style="@style/Widget.Material3.Button.TextButton"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Add $50"
+                        android:text="@string/savings_add_50"
                         android:textAllCaps="false"
                         android:textColor="@color/primaryBlue" />
                 </LinearLayout>

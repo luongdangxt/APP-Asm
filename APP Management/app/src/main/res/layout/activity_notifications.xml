@@ -39,7 +39,7 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:layout_marginStart="8dp"
-                android:text="Notifications" />
+                android:text="@string/notifications_title" />
 
             <ImageButton
                 android:id="@+id/btn_settings_shortcut"
@@ -56,7 +56,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
-            android:text="Stay updated with budgets, goals and reminders tailored to you."
+            android:text="@string/notifications_subtitle"
             android:textColor="@color/textSecondary" />
 
         <LinearLayout
@@ -87,7 +87,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Unread"
+                    android:text="@string/notifications_unread"
                     android:textColor="@color/textSecondary" />
             </LinearLayout>
 
@@ -101,7 +101,7 @@
                     android:id="@+id/tv_last_sync"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Updated just now"
+                    android:text="@string/notifications_updated_now"
                     android:textColor="@color/textSecondary"
                     android:textSize="12sp" />
 
@@ -113,7 +113,7 @@
                     android:background="@drawable/shape_pill_blue"
                     android:paddingHorizontal="16dp"
                     android:paddingVertical="8dp"
-                    android:text="Refresh"
+                    android:text="@string/notifications_refresh"
                     android:textColor="@android:color/white"
                     android:textSize="12sp" />
             </LinearLayout>
@@ -139,7 +139,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginEnd="8dp"
-                    android:text="All"
+                    android:text="@string/notifications_tab_all"
                     android:checked="true" />
 
                 <com.google.android.material.chip.Chip
@@ -148,7 +148,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginEnd="8dp"
-                    android:text="Budgets" />
+                    android:text="@string/notifications_tab_budgets" />
 
                 <com.google.android.material.chip.Chip
                     android:id="@+id/chip_goals"
@@ -156,7 +156,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginEnd="8dp"
-                    android:text="Goals" />
+                    android:text="@string/notifications_tab_goals" />
 
                 <com.google.android.material.chip.Chip
                     android:id="@+id/chip_reminders"
@@ -164,7 +164,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginEnd="8dp"
-                    android:text="Reminders" />
+                    android:text="@string/notifications_tab_reminders" />
 
                 <com.google.android.material.chip.Chip
                     android:id="@+id/chip_system"
@@ -172,7 +172,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginEnd="8dp"
-                    android:text="Product" />
+                    android:text="@string/notifications_tab_product" />
             </com.google.android.material.chip.ChipGroup>
         </HorizontalScrollView>
 
@@ -187,7 +187,7 @@
                 android:id="@+id/switch_unread_only"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Show unread only"
+                android:text="@string/notifications_show_unread"
                 android:textColor="@color/textPrimary" />
 
             <Space
@@ -202,7 +202,7 @@
                 android:background="@drawable/shape_pill_white"
                 android:paddingHorizontal="16dp"
                 android:paddingVertical="8dp"
-                android:text="Mark all read"
+                android:text="@string/notifications_mark_all"
                 android:textColor="@color/textPrimary"
                 android:textSize="12sp" />
 
@@ -217,7 +217,7 @@
                 android:background="@drawable/shape_pill_white"
                 android:paddingHorizontal="16dp"
                 android:paddingVertical="8dp"
-                android:text="Clear"
+                android:text="@string/notifications_clear"
                 android:textColor="@color/textPrimary"
                 android:textSize="12sp" />
         </LinearLayout>
@@ -237,7 +237,7 @@
             android:layout_height="wrap_content"
             android:gravity="center"
             android:padding="24dp"
-            android:text="No notifications yet."
+            android:text="@string/notifications_empty"
             android:textColor="@color/textSecondary"
             android:visibility="gone" />
 

@@ -5,7 +5,9 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@drawable/bg_app_gradient"
-    android:fillViewport="true">
+    android:fillViewport="true"
+    android:clipToPadding="false"
+    android:paddingBottom="@dimen/form_bottom_safe_space">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -21,14 +23,14 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
-            android:text="Settings" />
+            android:text="@string/settings_screen_title" />
 
         <TextView
             android:id="@+id/tv_settings_subtitle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="4dp"
-            android:text="Personalise the app experience and manage your account."
+            android:text="@string/settings_screen_subtitle"
             android:textColor="@color/textSecondary"
             android:textSize="13sp" />
 
@@ -49,7 +51,7 @@
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Alerts &amp; control"
+                    android:text="@string/settings_alerts_section"
                     android:textColor="@color/textSecondary"
                     android:textStyle="bold"
                     android:textSize="12sp" />
@@ -79,7 +81,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Notifications"
+                            android:text="@string/settings_notifications_title"
                             android:textColor="@color/textPrimary"
                             android:textStyle="bold" />
 
@@ -88,7 +90,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="2dp"
-                            android:text="Stay informed about budgets and saving tips."
+                            android:text="@string/settings_notifications_on"
                             android:textColor="@color/textSecondary"
                             android:textSize="12sp" />
                     </LinearLayout>
@@ -130,7 +132,7 @@
                             android:id="@+id/tv_dark_mode"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Theme"
+                            android:text="@string/settings_theme_label"
                             android:textColor="@color/textPrimary"
                             android:textStyle="bold" />
 
@@ -139,7 +141,58 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="2dp"
-                            android:text="Follow system"
+                            android:text="@string/settings_theme_follow_system"
+                            android:textColor="@color/textSecondary"
+                            android:textSize="12sp" />
+                    </LinearLayout>
+
+                    <ImageView
+                        android:layout_width="16dp"
+                        android:layout_height="16dp"
+                        android:src="@drawable/ic_chevron_right"
+                        android:tint="@color/textSecondary" />
+                </LinearLayout>
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:background="@color/icon_circle_bg" />
+
+                <LinearLayout
+                    android:id="@+id/row_language"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:paddingVertical="16dp"
+                    android:foreground="?attr/selectableItemBackground">
+
+                    <ImageView
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:src="@drawable/ic_language"
+                        android:tint="@color/primaryBlue" />
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="12dp"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/settings_language_title"
+                            android:textColor="@color/textPrimary"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:id="@+id/tv_language_summary"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="2dp"
+                            android:text="@string/settings_language_summary"
                             android:textColor="@color/textSecondary"
                             android:textSize="12sp" />
                     </LinearLayout>
@@ -158,7 +211,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="24dp"
-            android:text="Support"
+            android:text="@string/settings_support_section"
             android:textColor="@color/textSecondary"
             android:textStyle="bold"
             android:textSize="12sp" />
@@ -198,7 +251,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginStart="12dp"
                         android:layout_weight="1"
-                        android:text="Rate app"
+                        android:text="@string/settings_rate_app"
                         android:textColor="@color/textPrimary"
                         android:textStyle="bold" />
 
@@ -236,7 +289,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginStart="12dp"
                         android:layout_weight="1"
-                        android:text="Share with friends"
+                        android:text="@string/settings_share_row"
                         android:textColor="@color/textPrimary"
                         android:textStyle="bold" />
 
@@ -274,7 +327,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginStart="12dp"
                         android:layout_weight="1"
-                        android:text="Contact support"
+                        android:text="@string/settings_contact_support"
                         android:textColor="@color/textPrimary"
                         android:textStyle="bold" />
 
@@ -312,7 +365,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginStart="12dp"
                         android:layout_weight="1"
-                        android:text="Send feedback"
+                        android:text="@string/settings_feedback"
                         android:textColor="@color/textPrimary"
                         android:textStyle="bold" />
 
@@ -330,7 +383,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="24dp"
-            android:text="Privacy &amp; data"
+            android:text="@string/settings_privacy_section"
             android:textColor="@color/textSecondary"
             android:textStyle="bold"
             android:textSize="12sp" />
@@ -370,7 +423,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginStart="12dp"
                         android:layout_weight="1"
-                        android:text="Privacy policy"
+                        android:text="@string/settings_privacy_policy"
                         android:textColor="@color/textPrimary"
                         android:textStyle="bold" />
 
@@ -408,7 +461,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginStart="12dp"
                         android:layout_weight="1"
-                        android:text="Terms &amp; conditions"
+                        android:text="@string/settings_terms"
                         android:textColor="@color/textPrimary"
                         android:textStyle="bold" />
 
@@ -451,7 +504,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Manage app data"
+                            android:text="@string/settings_manage_data_title"
                             android:textColor="@color/textPrimary"
                             android:textStyle="bold" />
 
@@ -459,7 +512,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="2dp"
-                            android:text="Clear local transactions and budgets."
+                            android:text="@string/settings_manage_data_subtitle"
                             android:textColor="@color/textSecondary"
                             android:textSize="12sp" />
                     </LinearLayout>
@@ -509,7 +562,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Log out"
+                        android:text="@string/settings_logout"
                         android:textColor="@color/textPrimary"
                         android:textStyle="bold" />
 
@@ -517,7 +570,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="2dp"
-                        android:text="Sign out of your current account."
+                        android:text="@string/settings_logout_subtitle"
                         android:textColor="@color/textSecondary"
                         android:textSize="12sp" />
                 </LinearLayout>

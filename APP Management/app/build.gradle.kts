@@ -13,6 +13,9 @@ android {
         versionCode = 1
         versionName = "1.0"
 
+        // Default API base points to Render deployment
+        buildConfigField("String", "API_BASE_URL", "\"https://backend-app-asm.onrender.com\"")
+
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
@@ -28,6 +31,10 @@ android {
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
+    }
+
+    buildFeatures {
+        buildConfig = true
     }
 }
 

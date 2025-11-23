@@ -1,4 +1,4 @@
-package com.example.personalfinancialmanagement;
+package com.example.personalfinancialmanagement.auth;
 
 import android.os.Bundle;
 import android.widget.Button;
@@ -17,6 +17,11 @@ import androidx.core.view.WindowInsetsCompat;
 import androidx.core.graphics.Insets;
 import android.graphics.Color;
 import android.view.WindowInsetsController;
+import android.os.Build;
+
+import com.example.personalfinancialmanagement.Async;
+import com.example.personalfinancialmanagement.R;
+import com.example.personalfinancialmanagement.data.user.UserRepository;
 
 public class RegisterActivity extends AppCompatActivity {
     private UserRepository userRepository;
@@ -28,10 +33,12 @@ public class RegisterActivity extends AppCompatActivity {
         WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
         getWindow().setStatusBarColor(Color.TRANSPARENT);
         getWindow().setNavigationBarColor(Color.TRANSPARENT);
-        WindowInsetsController insetsController = getWindow().getInsetsController();
-        if (insetsController != null) {
-            insetsController.setSystemBarsAppearance(0, WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS);
-            insetsController.setSystemBarsAppearance(0, WindowInsetsController.APPEARANCE_LIGHT_NAVIGATION_BARS);
+        if (Build.VERSION.SDK_INT >= 30) {
+            WindowInsetsController insetsController = getWindow().getInsetsController();
+            if (insetsController != null) {
+                insetsController.setSystemBarsAppearance(0, WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS);
+                insetsController.setSystemBarsAppearance(0, WindowInsetsController.APPEARANCE_LIGHT_NAVIGATION_BARS);
+            }
         }
         setContentView(R.layout.activity_register);
         View root = findViewById(R.id.register_root);
@@ -109,20 +116,12 @@ public class RegisterActivity extends AppCompatActivity {
                         String code = codeInput.getText().toString().trim();
                         if (!"123456".equals(code)) { Toast.makeText(this, "Invalid code", Toast.LENGTH_SHORT).show(); return; }
                         Async.runIo(() -> {
-                            long id = userRepository.register(u, p);
+                            long id = userRepository.register(u, p, e);
                             if (id > 0) {
-                                // Save additional profile fields
-                                UserDao dao = AppDatabase.getInstance(this).userDao();
-                                User newUser = dao.findByUsername(u);
-                                if (newUser != null) {
-                                    newUser.fullName = ((EditText)findViewById(R.id.reg_fullname)).getText().toString().trim();
-                                    newUser.email = e;
-                                    newUser.phone = "+" + ph; // store with +
-                                    dao.update(newUser);
-                                }
                                 Async.runMain(() -> { Toast.makeText(this, "Account created. Please login.", Toast.LENGTH_SHORT).show(); finish(); });
                             } else {
-                                Async.runMain(() -> Toast.makeText(this, "Username already exists", Toast.LENGTH_SHORT).show());
+                                final String err = userRepository.getLastError();
+                                Async.runMain(() -> Toast.makeText(this, err != null ? err : "Registration failed", Toast.LENGTH_SHORT).show());
                             }
                         });
                     })

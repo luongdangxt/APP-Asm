@@ -11,8 +11,21 @@
     <color name="accentBlue">#00B4FF</color>
     <color name="surfaceCard">#FFFFFF</color>
     <color name="bottom_nav_tint">#9CA3AF</color>
-    <color name="bottom_bar_bg">#FFFFFF</color>
+    <color name="bottom_bar_bg">@color/app_gradient_end</color>
     <color name="icon_circle_bg">#E8EDF4</color>
     <color name="app_gradient_start">#F4F6FB</color>
     <color name="app_gradient_end">#DBE1ED</color>
+    <color name="reportBackground">@color/surfaceLight</color>
+    <color name="reportCard">@color/surfaceCard</color>
+    <color name="reportCardMuted">#EEF2FF</color>
+    <color name="reportChip">@color/icon_circle_bg</color>
+    <color name="reportChipTint">@color/textSecondary</color>
+    <color name="reportDivider">#D5DDE8</color>
+    <color name="reportPositive">#16A34A</color>
+    <color name="reportNegative">#DC2626</color>
+    <color name="reportAccentStart">#00BAFF</color>
+    <color name="reportAccentEnd">#7C5CFF</color>
+    <color name="shadowLight">#55FFFFFF</color>
+    <color name="shadowDark">#1A000000</color>
+    <color name="reportDonutTrack">@color/icon_circle_bg</color>
 </resources>

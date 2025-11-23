@@ -21,7 +21,7 @@
                 android:id="@+id/tv_title"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Overview"
+                android:text="@string/overview_title"
                 android:textStyle="bold"
                 android:textSize="20sp"
                 android:textColor="@color/textPrimary"/>
@@ -44,6 +44,8 @@
         android:id="@+id/scroll"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:clipToPadding="false"
+        android:paddingBottom="@dimen/form_bottom_safe_space"
         app:layout_behavior="@string/appbar_scrolling_view_behavior"
         android:fillViewport="true">
 
@@ -72,7 +74,7 @@
                         android:id="@+id/tv_overview_month_label"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="June Overview"
+                        android:text="@string/overview_month_placeholder"
                         android:textColor="@color/textSecondary"
                         android:textStyle="bold"
                         android:textSize="13sp" />
@@ -82,7 +84,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="6dp"
-                        android:text="$0.00"
+                        android:text="@string/overview_activity_amount_placeholder"
                         android:textColor="@color/primaryBlue"
                         android:textSize="28sp"
                         android:textStyle="bold" />
@@ -92,7 +94,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="4dp"
-                        android:text="Income - expense this month"
+                        android:text="@string/overview_balance_hint_default"
                         android:textColor="@color/textSecondary"
                         android:textSize="12sp" />
 
@@ -112,7 +114,7 @@
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="Income"
+                                android:text="@string/overview_income_label"
                                 android:textColor="@color/textSecondary"
                                 android:textSize="12sp" />
 
@@ -121,7 +123,7 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:layout_marginTop="4dp"
-                                android:text="$0.00"
+                                android:text="@string/overview_activity_amount_placeholder"
                                 android:textColor="@color/textPrimary"
                                 android:textStyle="bold" />
                         </LinearLayout>
@@ -135,7 +137,7 @@
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="Expense"
+                                android:text="@string/overview_expense_label"
                                 android:textColor="@color/textSecondary"
                                 android:textSize="12sp" />
 
@@ -144,7 +146,7 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:layout_marginTop="4dp"
-                                android:text="$0.00"
+                                android:text="@string/overview_activity_amount_placeholder"
                                 android:textColor="@color/textPrimary"
                                 android:textStyle="bold" />
                         </LinearLayout>
@@ -155,7 +157,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="10dp"
-                        android:text="Last updated just now"
+                        android:text="@string/overview_last_updated_placeholder"
                         android:textColor="@color/textSecondary"
                         android:textSize="12sp" />
                 </LinearLayout>
@@ -185,7 +187,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Budgets this month"
+                            android:text="@string/overview_budgets_title"
                             android:textColor="@color/textSecondary"
                             android:textStyle="bold"
                             android:textSize="12sp" />
@@ -195,7 +197,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="8dp"
-                            android:text="$0 of $0 used"
+                            android:text="@string/overview_budget_summary_placeholder"
                             android:textColor="@color/textPrimary"
                             android:textStyle="bold" />
 
@@ -215,7 +217,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="6dp"
-                            android:text="No budgets configured yet."
+                            android:text="@string/overview_budget_remaining_placeholder"
                             android:textColor="@color/textSecondary"
                             android:textSize="12sp" />
 
@@ -225,7 +227,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="12dp"
-                            android:text="Manage budgets"
+                            android:text="@string/overview_manage_budgets"
                             android:textAllCaps="false"
                             app:icon="@drawable/ic_wallet"
                             app:iconGravity="textStart"
@@ -255,7 +257,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Activity snapshot"
+                            android:text="@string/overview_activity_title"
                             android:textColor="@color/textSecondary"
                             android:textStyle="bold"
                             android:textSize="12sp" />
@@ -265,7 +267,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="8dp"
-                            android:text="No recent entries"
+                            android:text="@string/overview_activity_summary_placeholder"
                             android:textColor="@color/textPrimary"
                             android:textStyle="bold" />
 
@@ -274,7 +276,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="4dp"
-                            android:text="$0.00"
+                            android:text="@string/overview_activity_amount_placeholder"
                             android:textColor="@color/textPrimary"
                             android:textSize="18sp"
                             android:textStyle="bold" />
@@ -286,7 +288,7 @@
                             android:layout_marginTop="4dp"
                             android:textColor="@color/textSecondary"
                             android:textSize="12sp"
-                            android:text="When new income or expenses arrive they will appear here." />
+                            android:text="@string/overview_activity_hint_placeholder" />
 
                         <com.google.android.material.button.MaterialButton
                             android:id="@+id/btn_view_reports"
@@ -294,7 +296,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="12dp"
-                            android:text="View entries"
+                            android:text="@string/overview_view_entries"
                             android:textAllCaps="false"
                             app:icon="@drawable/ic_doc_outline"
                             app:iconGravity="textStart"
@@ -328,7 +330,7 @@
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
-                            android:text="Latest entries"
+                            android:text="@string/overview_latest_title"
                             android:textColor="@color/textPrimary"
                             android:textStyle="bold" />
 
@@ -355,7 +357,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginTop="12dp"
                         android:gravity="center"
-                        android:text="Start by adding income or expense to see them listed here."
+                        android:text="@string/overview_empty_list_hint"
                         android:textColor="@color/textSecondary"
                         android:textSize="12sp"
                         android:visibility="gone" />
@@ -378,109 +380,110 @@
         <FrameLayout
             android:id="@+id/bottom_bar"
             android:layout_width="match_parent"
-            android:layout_height="80dp"
+            android:layout_height="@dimen/bottom_bar_height"
             android:layout_gravity="bottom"
             android:background="@drawable/bg_bottom_bar"
             android:elevation="6dp">
 
-        <View
-            android:layout_width="match_parent"
-            android:layout_height="1dp"
-            android:background="#3A3F48"
-            android:layout_gravity="top"/>
-
-        <LinearLayout
-            android:id="@+id/bottom_bar_row"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:gravity="center"
-            android:paddingHorizontal="0dp"
-            android:weightSum="5"
-            android:orientation="horizontal">
-
-            <FrameLayout
-                android:layout_width="0dp"
+            <LinearLayout
+                android:id="@+id/bottom_bar_row"
+                android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:layout_weight="1"
-                android:gravity="center">
-                <ImageButton
-                    android:id="@+id/btn_home"
-                    android:layout_width="44dp"
-                    android:layout_height="44dp"
-                    android:layout_gravity="center"
-                    android:background="@drawable/bg_neu_icon_circle"
-                    android:padding="10dp"
-                    android:src="@drawable/ic_home_solid"
-                    app:tint="@color/primaryBlue"/>
-            </FrameLayout>
+                android:gravity="center"
+                android:orientation="horizontal"
+                
+                android:weightSum="5">
 
-            <FrameLayout
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:layout_weight="1"
-                android:gravity="center">
-                <ImageButton
-                    android:id="@+id/btn_savings_tab"
-                    android:layout_width="44dp"
-                    android:layout_height="44dp"
-                    android:layout_gravity="center"
-                    android:background="@drawable/bg_neu_icon_circle"
-                    android:padding="10dp"
-                    android:src="@drawable/ic_savings_square"
-                    app:tint="@color/bottom_nav_tint"/>
-            </FrameLayout>
+                <FrameLayout
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:gravity="center">
 
-            <FrameLayout
-                android:id="@+id/center_add_container"
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:layout_weight="1"
-                android:gravity="center">
+                    <ImageButton
+                        android:id="@+id/btn_home"
+                        android:layout_width="44dp"
+                        android:layout_height="44dp"
+                        android:layout_gravity="center"
+                        android:background="@drawable/bg_neu_icon_circle"
+                        android:padding="10dp"
+                        android:src="@drawable/ic_home_solid"
+                        app:tint="@color/primaryBlue" />
+                </FrameLayout>
 
-                <ImageButton
-                    android:id="@+id/btn_add"
-                    android:layout_width="56dp"
-                    android:layout_height="56dp"
-                    android:layout_gravity="center"
-                    android:background="@drawable/bg_neu_concave_circle_primary"
-                    android:padding="14dp"
-                    android:scaleType="centerInside"
-                    android:src="@drawable/ic_add"
-                    android:tint="@android:color/white" />
-            </FrameLayout>
+                <FrameLayout
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:gravity="center">
 
-            <FrameLayout
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:layout_weight="1"
-                android:gravity="center">
-                <ImageButton
-                    android:id="@+id/btn_notify"
-                    android:layout_width="44dp"
-                    android:layout_height="44dp"
-                    android:layout_gravity="center"
-                    android:background="@drawable/bg_neu_icon_circle"
-                    android:padding="10dp"
-                    android:src="@drawable/ic_bell"
-                    app:tint="@color/bottom_nav_tint"/>
-            </FrameLayout>
+                    <ImageButton
+                        android:id="@+id/btn_savings_tab"
+                        android:layout_width="44dp"
+                        android:layout_height="44dp"
+                        android:layout_gravity="center"
+                        android:background="@drawable/bg_neu_icon_circle"
+                        android:padding="10dp"
+                        android:src="@drawable/ic_savings_square"
+                        app:tint="@color/bottom_nav_tint" />
+                </FrameLayout>
 
-            <FrameLayout
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:layout_weight="1"
-                android:gravity="center">
-                <ImageButton
-                    android:id="@+id/btn_settings"
-                    android:layout_width="44dp"
-                    android:layout_height="44dp"
-                    android:layout_gravity="center"
-                    android:background="@drawable/bg_neu_icon_circle"
-                    android:padding="10dp"
-                    android:src="@drawable/ic_settings_gear_outline"
-                    app:tint="@color/bottom_nav_tint"/>
-            </FrameLayout>
-        </LinearLayout>
+                <FrameLayout
+                    android:id="@+id/center_add_container"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:gravity="center">
+
+                    <ImageButton
+                        android:id="@+id/btn_add"
+                        android:layout_width="56dp"
+                        android:layout_height="56dp"
+                        android:layout_gravity="center"
+                        android:background="@drawable/bg_neu_concave_circle_primary"
+                        android:padding="14dp"
+                        android:scaleType="centerInside"
+                        android:src="@drawable/ic_add"
+                        android:tint="@android:color/white" />
+                </FrameLayout>
+
+                <FrameLayout
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:gravity="center">
+
+                    <ImageButton
+                        android:id="@+id/btn_notify"
+                        android:layout_width="44dp"
+                        android:layout_height="44dp"
+                        android:layout_gravity="center"
+                        android:background="@drawable/bg_neu_icon_circle"
+                        android:padding="10dp"
+                        android:src="@drawable/ic_bell"
+                        app:tint="@color/bottom_nav_tint" />
+                </FrameLayout>
+
+                <FrameLayout
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:gravity="center">
+
+                    <ImageButton
+                        android:id="@+id/btn_settings"
+                        android:layout_width="44dp"
+                        android:layout_height="44dp"
+                        android:layout_gravity="center"
+                        android:background="@drawable/bg_neu_icon_circle"
+                        android:padding="10dp"
+                        android:src="@drawable/ic_settings_gear_outline"
+                        app:tint="@color/bottom_nav_tint" />
+                </FrameLayout>
+            </LinearLayout>
     </FrameLayout>
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>
+
+
+

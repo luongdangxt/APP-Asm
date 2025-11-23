@@ -20,14 +20,14 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
-            android:text="Add" />
+            android:text="@string/add_screen_title" />
 
         <TextView
             android:id="@+id/tv_add_subtitle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="4dp"
-            android:text="Capture new income or expense in a few taps."
+            android:text="@string/add_screen_subtitle"
             android:textColor="@color/textSecondary"
             android:textSize="13sp" />
 
@@ -48,7 +48,7 @@
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Quick actions"
+                    android:text="@string/add_quick_actions"
                     android:textColor="@color/textSecondary"
                     android:textStyle="bold"
                     android:textSize="12sp" />
@@ -86,7 +86,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="8dp"
-                            android:text="Add income"
+                            android:text="@string/add_income_title"
                             android:textColor="@color/textPrimary"
                             android:textStyle="bold" />
 
@@ -94,7 +94,7 @@
                             android:id="@+id/tv_add_income_subtitle"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Salary, bonus or other inflows"
+                            android:text="@string/add_income_subtitle"
                             android:textColor="@color/textSecondary"
                             android:textSize="11sp" />
                     </LinearLayout>
@@ -125,7 +125,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="8dp"
-                            android:text="Add expense"
+                            android:text="@string/add_expense_title"
                             android:textColor="@android:color/white"
                             android:textStyle="bold" />
 
@@ -133,7 +133,7 @@
                             android:id="@+id/tv_add_expense_subtitle"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Purchases, bills or daily spend"
+                            android:text="@string/add_expense_subtitle"
                             android:textColor="@android:color/white"
                             android:textSize="11sp" />
                     </LinearLayout>
@@ -150,7 +150,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Quick amount"
+                        android:text="@string/add_quick_amount_label"
                         android:textColor="@color/textSecondary"
                         android:textSize="12sp" />
 
@@ -168,21 +168,21 @@
                             style="@style/Widget.Material3.Chip.Suggestion"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="$50" />
+                            android:text="@string/add_amount_50" />
 
                         <com.google.android.material.chip.Chip
                             android:id="@+id/chip_quick_100"
                             style="@style/Widget.Material3.Chip.Suggestion"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="$100" />
+                            android:text="@string/add_amount_100" />
 
                         <com.google.android.material.chip.Chip
                             android:id="@+id/chip_quick_custom"
                             style="@style/Widget.Material3.Chip.Suggestion"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Custom" />
+                            android:text="@string/add_amount_custom" />
                     </com.google.android.material.chip.ChipGroup>
                 </LinearLayout>
             </LinearLayout>
@@ -218,7 +218,7 @@
                             android:id="@+id/tv_latest_title"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Latest activity"
+                            android:text="@string/add_latest_title"
                             android:textColor="@color/textPrimary"
                             android:textStyle="bold" />
 
@@ -227,7 +227,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="2dp"
-                            android:text="Recently added incomes &amp; expenses"
+                            android:text="@string/add_latest_subtitle"
                             android:textColor="@color/textSecondary"
                             android:textSize="12sp" />
                     </LinearLayout>
@@ -256,7 +256,7 @@
                     android:layout_marginTop="12dp"
                     android:gravity="center"
                     android:padding="16dp"
-                    android:text="You haven't added anything yet. Start by logging today's expense."
+                    android:text="@string/add_empty_hint"
                     android:textColor="@color/textSecondary"
                     android:textSize="12sp"
                     android:visibility="gone" />
