@@ -297,10 +297,15 @@ public class FinanceRemoteRepository {
         }
     }
 
-    public boolean addSavingsContribution(long userId, Long goalId, double amount, long dateUtc, boolean isAuto) {
+    public boolean addSavingsContribution(long userId, Long goalId, String goalTitle, double amount, long dateUtc, boolean isAuto) {
         try {
             JSONObject body = new JSONObject();
-            if (goalId != null && goalId > 0) body.put("goalId", goalId);
+            String remoteId = findGoalRemoteId(goalTitle);
+            if (remoteId != null) {
+                body.put("goalId", remoteId);
+            } else if (goalId != null && goalId > 0) {
+                body.put("goalId", goalId);
+            }
             body.put("amount", amount);
             body.put("dateUtc", dateUtc);
             body.put("isAuto", isAuto);
@@ -312,10 +317,19 @@ public class FinanceRemoteRepository {
         return false;
     }
 
-    public List<SavingsContribution> listSavingsContributions(long userId, Long goalId) {
+    public boolean addSavingsContribution(long userId, Long goalId, double amount, long dateUtc, boolean isAuto) {
+        return addSavingsContribution(userId, goalId, null, amount, dateUtc, isAuto);
+    }
+
+    public List<SavingsContribution> listSavingsContributions(long userId, Long goalId, String goalTitle) {
         try {
             String path = "/savings/contributions";
-            if (goalId != null && goalId > 0) path += "?goalId=" + goalId;
+            String remoteId = findGoalRemoteId(goalTitle);
+            if (remoteId != null) {
+                path += "?goalId=" + remoteId;
+            } else if (goalId != null && goalId > 0) {
+                path += "?goalId=" + goalId;
+            }
             ApiResult r = request("GET", path, null);
             if (r.statusCode == 200 && r.json != null) {
                 List<SavingsContribution> list = parseSavingsContributions(r.json.optJSONArray("contributions"), userId);
@@ -485,8 +499,22 @@ public class FinanceRemoteRepository {
             double target = o.optDouble("targetAmount", 0);
             String icon = o.optString("iconKey", "default");
             long created = o.optLong("createdAtUtc", System.currentTimeMillis());
+            long deadline = o.optLong("deadlineUtc", 0);
+            int cadence = o.optInt("cadence", 0);
+            long id = o.optLong("_id", 0);
+            if (id == 0) {
+                String idStr = o.optString("_id", "");
+                if (idStr != null && !idStr.isEmpty()) {
+                    try { id = Long.parseLong(idStr.replaceAll("[^0-9]", "")); } catch (Exception ignored) {}
+                    if (id == 0) id = Math.abs(idStr.hashCode());
+                }
+            }
             if (title.isEmpty()) continue;
-            list.add(new SavingsGoal(userId, title, target, icon, created));
+            SavingsGoal g = new SavingsGoal(userId, title, target, icon, created);
+            g.deadlineUtc = deadline;
+            g.cadence = cadence;
+            g.id = id;
+            list.add(g);
         }
         return list;
     }
@@ -532,6 +560,31 @@ public class FinanceRemoteRepository {
             if (item != null) list.add(item);
         }
         return list;
+    }
+
+    private String findGoalRemoteId(String title) {
+        try {
+            if (title == null || title.trim().isEmpty()) return null;
+            ApiResult r = request("GET", "/savings/goals", null);
+            if (r.statusCode == 200 && r.json != null) {
+                JSONArray arr = r.json.optJSONArray("goals");
+                if (arr != null) {
+                    String normalized = title.trim().toLowerCase(Locale.getDefault());
+                    for (int i = 0; i < arr.length(); i++) {
+                        JSONObject o = arr.optJSONObject(i);
+                        if (o == null) continue;
+                        String label = o.optString("title", "").trim().toLowerCase(Locale.getDefault());
+                        if (normalized.equals(label)) {
+                            String id = o.optString("_id", null);
+                            if (id != null && !id.isEmpty()) return id;
+                        }
+                    }
+                }
+            }
+        } catch (Exception ex) {
+            Log.w(TAG, "findGoalRemoteId failed", ex);
+        }
+        return null;
     }
 
     private SourceItem parseSourceObject(JSONObject o) {

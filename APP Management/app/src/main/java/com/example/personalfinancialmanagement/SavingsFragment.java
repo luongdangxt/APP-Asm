@@ -18,6 +18,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
+import com.google.android.material.textfield.TextInputLayout;
 
 import java.text.DateFormatSymbols;
 import java.util.Calendar;
@@ -165,7 +166,7 @@ public class SavingsFragment extends Fragment {
 
             List<SavingsGoal> goals = repo.listGoals(userId);
             java.util.ArrayList<SavingsGoalAdapter.Item> items = new java.util.ArrayList<>();
-            for (SavingsGoal g : goals) items.add(new SavingsGoalAdapter.Item(g, repo.goalProgress(userId, g.id)));
+            for (SavingsGoal g : goals) items.add(new SavingsGoalAdapter.Item(g, repo.goalProgress(userId, g)));
 
             Async.runMain(() -> {
                 if (!isAdded()) return;
@@ -262,6 +263,11 @@ public class SavingsFragment extends Fragment {
     private void promptSetMonthlyGoal() {
         View v = getLayoutInflater().inflate(R.layout.dialog_set_monthly_goal, null, false);
         final EditText input = v.findViewById(R.id.et_monthly_goal);
+        TextInputLayout til = v.findViewById(R.id.til_amount_input);
+        if (til != null) {
+            til.setHint("Monthly goal");
+            til.setPlaceholderText("e.g. 2000");
+        }
         new MaterialAlertDialogBuilder(requireContext())
                 .setTitle("Set monthly savings goal")
                 .setView(v)
@@ -277,18 +283,20 @@ public class SavingsFragment extends Fragment {
     }
 
     private void showGoalActions(SavingsGoal goal) {
-        String[] opts = new String[] {"Add $50", "Add $100", "Edit", "Delete"};
+        String[] opts = new String[] {"Add $50", "Add $100", "Add custom amount", "Edit", "Delete"};
         new MaterialAlertDialogBuilder(requireContext())
                 .setTitle(goal.title)
                 .setItems(opts, (d, which) -> {
                     if (which == 0 || which == 1) {
                         double amount = which == 0 ? 50 : 100;
-                        Async.runIo(() -> { repo.addContribution(userId, goal.id, amount, System.currentTimeMillis()); Async.runMain(this::refresh); });
+                        Async.runIo(() -> { repo.addContribution(userId, goal, amount, System.currentTimeMillis()); Async.runMain(this::refresh); });
                     } else if (which == 2) {
+                        promptCustomContribution(goal);
+                    } else if (which == 3) {
                         if (requireActivity() instanceof MainActivity) {
                             ((MainActivity) requireActivity()).showFragment(AddGoalFragment.editInstance(userId, goal));
                         }
-                    } else if (which == 3) {
+                    } else if (which == 4) {
                         new MaterialAlertDialogBuilder(requireContext())
                                 .setTitle("Delete goal?")
                                 .setMessage("This will remove the goal. Existing contributions remain.")
@@ -297,6 +305,31 @@ public class SavingsFragment extends Fragment {
                                 .show();
                     }
                 })
+                .show();
+    }
+
+    private void promptCustomContribution(SavingsGoal goal) {
+        View view = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_set_monthly_goal, null, false);
+        final EditText input = view.findViewById(R.id.et_monthly_goal);
+        TextInputLayout til = view.findViewById(R.id.til_amount_input);
+        if (til != null) {
+            til.setHint("Amount");
+            til.setPlaceholderText("e.g. 200");
+        }
+        input.setHint("");
+        new MaterialAlertDialogBuilder(requireContext())
+                .setTitle("Add to " + goal.title)
+                .setView(view)
+                .setPositiveButton("Add", (d, w) -> {
+                    double parsed = 0; try { parsed = Double.parseDouble(input.getText().toString().trim()); } catch (Exception ignored) {}
+                    final double val = parsed;
+                    if (val > 0) {
+                        Async.runIo(() -> { repo.addContribution(userId, goal, val, System.currentTimeMillis()); Async.runMain(this::refresh); });
+                    } else {
+                        Toast.makeText(requireContext(), "Enter a valid amount", Toast.LENGTH_SHORT).show();
+                    }
+                })
+                .setNegativeButton("Cancel", null)
                 .show();
     }
 
@@ -352,7 +385,7 @@ public class SavingsFragment extends Fragment {
                         .setItems(titles, (d, which) -> {
                             SavingsGoal target = goals.get(which);
                             Async.runIo(() -> {
-                                repo.addContribution(userId, target.id, 50, System.currentTimeMillis());
+                                repo.addContribution(userId, target, 50, System.currentTimeMillis());
                                 Async.runMain(() -> {
                                     if (!isAdded()) return;
                                     Toast.makeText(requireContext(), "Added $50 to " + target.title, Toast.LENGTH_SHORT).show();

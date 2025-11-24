@@ -10,11 +10,12 @@
     android:paddingBottom="8dp">
 
     <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/til_amount_input"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Monthly goal"
+        android:hint=""
         app:prefixText="$"
-        app:placeholderText="e.g. 2000">
+        app:placeholderText="">
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/et_monthly_goal"
             android:layout_width="match_parent"
