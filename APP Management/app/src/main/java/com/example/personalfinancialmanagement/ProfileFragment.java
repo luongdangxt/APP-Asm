@@ -78,16 +78,36 @@ public class ProfileFragment extends Fragment {
         if (userId > 0) {
             Async.runIo(() -> {
                 User u = userDao.findById(userId);
+                if (u == null) {
+                    // Fallback to server data if local cache is missing
+                    User remote = userRepo.fetchMeViaToken();
+                    if (remote == null) {
+                        remote = userRepo.findById(userId);
+                    }
+                    if (remote != null) {
+                        // Upsert into local DB using server-provided id for consistency
+                        User existing = userDao.findByUsername(remote.username);
+                        if (existing == null) {
+                            long insertedId = userDao.insert(remote);
+                            if (insertedId > 0) remote.id = insertedId;
+                        } else {
+                            remote.id = existing.id;
+                            userDao.update(remote);
+                        }
+                        u = remote;
+                    }
+                }
                 holder[0] = u;
+                final User uiUser = u;
                 Async.runMain(() -> {
-                    if (u != null) {
-                        tvName.setText(u.fullName != null && !u.fullName.trim().isEmpty() ? u.fullName : u.username);
-                        edUsername.setText(u.username);
-                        if (u.fullName != null) edFullName.setText(u.fullName);
-                        if (u.email != null) edEmail.setText(u.email);
-                        if (u.phone != null) edPhone.setText(u.phone);
-                        if (tvEmailSubtitle != null) tvEmailSubtitle.setText(u.email != null ? u.email : "Tap edit to add your email");
-                        if (tvMemberSince != null) tvMemberSince.setText(String.format(Locale.getDefault(), "User ID #%d", u.id));
+                    if (uiUser != null) {
+                        tvName.setText(uiUser.fullName != null && !uiUser.fullName.trim().isEmpty() ? uiUser.fullName : uiUser.username);
+                        edUsername.setText(uiUser.username);
+                        if (uiUser.fullName != null) edFullName.setText(uiUser.fullName);
+                        if (uiUser.email != null) edEmail.setText(uiUser.email);
+                        if (uiUser.phone != null) edPhone.setText(uiUser.phone);
+                        if (tvEmailSubtitle != null) tvEmailSubtitle.setText(uiUser.email != null ? uiUser.email : "Tap edit to add your email");
+                        if (tvMemberSince != null) tvMemberSince.setText(String.format(Locale.getDefault(), "User ID #%d", uiUser.id));
                     }
                 });
             });

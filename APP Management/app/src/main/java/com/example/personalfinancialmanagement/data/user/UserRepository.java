@@ -39,7 +39,7 @@ public class UserRepository {
         return lastError;
     }
 
-    public long register(String username, String password, String email) {
+    public long register(String username, String password, String email, String fullName, String phone) {
         lastError = null;
         if (username == null || username.trim().isEmpty() || password == null || password.isEmpty()) {
             lastError = "Username và mật khẩu bắt buộc";
@@ -51,6 +51,12 @@ public class UserRepository {
             body.put("password", password);
             if (email != null && !email.trim().isEmpty()) {
                 body.put("email", email);
+            }
+            if (fullName != null && !fullName.trim().isEmpty()) {
+                body.put("fullName", fullName.trim());
+            }
+            if (phone != null && !phone.trim().isEmpty()) {
+                body.put("phone", phone.trim());
             }
         } catch (JSONException e) {
             return -1L;
@@ -99,8 +105,10 @@ public class UserRepository {
                     long id = user.optLong("id", -1L);
                     String uname = user.optString("username", username);
                     String email = user.optString("email", null);
+                    String fullName = user.optString("fullName", null);
+                    String phone = user.optString("phone", null);
                     // Keep passwordHash field populated for downstream code, although backend stores bcrypt.
-                    return new User(id, uname, PasswordHasher.sha256(password), null, email, null);
+                    return new User(id, uname, PasswordHasher.sha256(password), fullName, email, phone);
                 }
             }
             lastError = extractMessage(result.json, "Sai thông tin đăng nhập");
@@ -122,7 +130,9 @@ public class UserRepository {
                     long uid = user.optLong("id", -1L);
                     String uname = user.optString("username", "");
                     String email = user.optString("email", null);
-                    return new User(uid, uname, "", null, email, null);
+                    String fullName = user.optString("fullName", null);
+                    String phone = user.optString("phone", null);
+                    return new User(uid, uname, "", fullName, email, phone);
                 }
             }
             lastError = extractMessage(result.json, "Không tìm thấy người dùng");
@@ -146,7 +156,9 @@ public class UserRepository {
                     long uid = user.optLong("id", -1L);
                     String uname = user.optString("username", "");
                     String email = user.optString("email", null);
-                    return new User(uid, uname, "", null, email, null);
+                    String fullName = user.optString("fullName", null);
+                    String phone = user.optString("phone", null);
+                    return new User(uid, uname, "", fullName, email, phone);
                 }
             }
             // if unauthorized, clear token

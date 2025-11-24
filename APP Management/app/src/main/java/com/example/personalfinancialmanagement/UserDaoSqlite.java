@@ -14,6 +14,9 @@ class UserDaoSqlite implements UserDao {
     @Override public long insert(User user) {
         SQLiteDatabase db = helper.getWritableDatabase();
         ContentValues cv = new ContentValues();
+        if (user.id > 0) {
+            cv.put("id", user.id);
+        }
         cv.put("username", user.username);
         cv.put("passwordHash", user.passwordHash);
         cv.put("fullName", user.fullName);
