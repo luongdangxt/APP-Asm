@@ -22,6 +22,11 @@ import androidx.work.WorkManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.widget.ImageView;
+import java.io.File;
+
 import com.example.personalfinancialmanagement.ManageBudgetsActivity;
 import com.example.personalfinancialmanagement.ExpenseRepository;
 import com.example.personalfinancialmanagement.IncomeRepository;
@@ -39,6 +44,7 @@ public class MainActivity extends AppCompatActivity {
     private final java.util.concurrent.ExecutorService io = java.util.concurrent.Executors.newSingleThreadExecutor();
     private View btnHome, btnSavingsTab, btnNotify, btnSettings;
     private int systemBarsTop = 0;
+    private ImageView ivAvatar;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -112,6 +118,8 @@ public class MainActivity extends AppCompatActivity {
         expenseRepository = new ExpenseRepository(this);
         incomeRepository = new IncomeRepository(this);
         budgetRepository = new BudgetRepository(this);
+
+        ivAvatar = findViewById(R.id.iv_avatar);
 
         RecyclerView rv = findViewById(R.id.rv_latest);
         if (rv != null) {
@@ -319,6 +327,7 @@ public class MainActivity extends AppCompatActivity {
                 if (avatar != null) {
                     long uid = userId;
                     avatar.setOnClickListener(v -> showFragment(ProfileFragment.newInstance(uid)));
+                    loadAvatar(uid);
                 }
 
                 TextView tvMonth = findViewById(R.id.tv_overview_month_label);
@@ -446,5 +455,26 @@ public class MainActivity extends AppCompatActivity {
     @Override protected void onDestroy() {
         super.onDestroy();
         io.shutdownNow();
+    }
+
+    // Load avatar saved locally by ProfileFragment (avatar_<userId>.jpg) and show on home card.
+    private void loadAvatar(long userId) {
+        if (ivAvatar == null || userId <= 0) return;
+        if (io.isShutdown() || io.isTerminated()) return; // avoid crash if executor was torn down
+        File f = new File(getFilesDir(), "avatar_" + userId + ".jpg");
+        if (!f.exists()) {
+            ivAvatar.setImageResource(R.drawable.ic_avatar);
+            return;
+        }
+        io.execute(() -> {
+            Bitmap bmp = BitmapFactory.decodeFile(f.getAbsolutePath());
+            if (bmp != null) {
+                runOnUiThread(() -> {
+                    if (!isFinishing() && ivAvatar != null) {
+                        ivAvatar.setImageBitmap(bmp);
+                    }
+                });
+            }
+        });
     }
 }

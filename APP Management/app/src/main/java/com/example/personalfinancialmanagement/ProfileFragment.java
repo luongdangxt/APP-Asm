@@ -5,15 +5,21 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.util.TypedValue;
+import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
@@ -28,9 +34,15 @@ import com.example.personalfinancialmanagement.data.user.UserRepository;
 
 import java.util.Locale;
 import java.util.List;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.InputStream;
 
 public class ProfileFragment extends Fragment {
     public static final String ARG_USER_ID = "userId";
+    private ActivityResultLauncher<Intent> pickImageLauncher;
+    private ImageView ivAvatar;
+    private long currentUserId = -1;
 
     public static ProfileFragment newInstance(long userId) {
         ProfileFragment f = new ProfileFragment();
@@ -38,6 +50,30 @@ public class ProfileFragment extends Fragment {
         b.putLong(ARG_USER_ID, userId);
         f.setArguments(b);
         return f;
+    }
+
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        pickImageLauncher = registerForActivityResult(
+                new ActivityResultContracts.StartActivityForResult(),
+                result -> {
+                    if (result.getResultCode() != android.app.Activity.RESULT_OK || result.getData() == null) return;
+                    Uri uri = result.getData().getData();
+                    if (uri == null || currentUserId <= 0) return;
+                    Async.runIo(() -> {
+                        boolean ok = saveAvatarFromUri(uri, currentUserId);
+                        Async.runMain(() -> {
+                            if (!isAdded()) return;
+                            if (ok) {
+                                loadAvatar(currentUserId);
+                            } else {
+                                Toast.makeText(requireContext(), "Failed to save image", Toast.LENGTH_SHORT).show();
+                            }
+                        });
+                    });
+                }
+        );
     }
 
     @Nullable
@@ -65,6 +101,7 @@ public class ProfileFragment extends Fragment {
         TextView tvIncomeMonth = root.findViewById(R.id.tv_profile_income_month);
         TextView tvExpenseMonth = root.findViewById(R.id.tv_profile_expense_month);
         TextView tvBudgetSummary = root.findViewById(R.id.tv_profile_budget_summary);
+        ivAvatar = root.findViewById(R.id.iv_profile_avatar);
 
         EditText edUsername = root.findViewById(R.id.ed_username);
         EditText edFullName = root.findViewById(R.id.ed_full_name);
@@ -75,6 +112,11 @@ public class ProfileFragment extends Fragment {
         UserDao userDao = AppDatabase.getInstance(requireContext()).userDao();
         UserRepository userRepo = new UserRepository(requireContext());
         final User[] holder = new User[1];
+        currentUserId = userId;
+        loadAvatar(userId);
+        if (ivAvatar != null) {
+            ivAvatar.setOnClickListener(v -> openImagePicker());
+        }
         if (userId > 0) {
             Async.runIo(() -> {
                 User u = userDao.findById(userId);
@@ -278,5 +320,63 @@ public class ProfileFragment extends Fragment {
         } catch (Exception ignored) {
             Toast.makeText(requireContext(), "No email app installed", Toast.LENGTH_SHORT).show();
         }
+    }
+
+    private void openImagePicker() {
+        Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+        intent.setType("image/*");
+        intent.addCategory(Intent.CATEGORY_OPENABLE);
+        pickImageLauncher.launch(Intent.createChooser(intent, "Choose profile photo"));
+    }
+
+    private void loadAvatar(long userId) {
+        if (ivAvatar == null || userId <= 0) return;
+        File f = getAvatarFile(userId);
+        if (!f.exists()) {
+            ivAvatar.setImageResource(R.drawable.ic_avatar);
+            return;
+        }
+        Async.runIo(() -> {
+            Bitmap bmp = BitmapFactory.decodeFile(f.getAbsolutePath());
+            if (bmp != null) {
+                Async.runMain(() -> {
+                    if (isAdded() && ivAvatar != null) {
+                        ivAvatar.setImageBitmap(bmp);
+                    }
+                });
+            }
+        });
+    }
+
+    private boolean saveAvatarFromUri(Uri uri, long userId) {
+        try (InputStream is = requireContext().getContentResolver().openInputStream(uri)) {
+            if (is == null) return false;
+            Bitmap src = BitmapFactory.decodeStream(is);
+            if (src == null) return false;
+            Bitmap bmp = src;
+            int max = 512;
+            if (src.getWidth() > max || src.getHeight() > max) {
+                float scale = Math.min((float) max / src.getWidth(), (float) max / src.getHeight());
+                int w = Math.max(1, Math.round(src.getWidth() * scale));
+                int h = Math.max(1, Math.round(src.getHeight() * scale));
+                bmp = Bitmap.createScaledBitmap(src, w, h, true);
+                if (bmp != src) src.recycle();
+            }
+            File out = getAvatarFile(userId);
+            try (FileOutputStream fos = new FileOutputStream(out)) {
+                bmp.compress(Bitmap.CompressFormat.JPEG, 90, fos);
+                fos.flush();
+            }
+            if (bmp != src) bmp.recycle();
+            return true;
+        } catch (Exception e) {
+            Log.e("ProfileFragment", "saveAvatarFromUri error", e);
+            return false;
+        }
+    }
+
+    private File getAvatarFile(long userId) {
+        File dir = requireContext().getFilesDir();
+        return new File(dir, "avatar_" + userId + ".jpg");
     }
 }
