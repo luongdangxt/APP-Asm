@@ -53,6 +53,7 @@ dependencies {
     implementation(libs.work.runtime)
     implementation(libs.security.crypto)
     implementation(libs.viewpager2)
+    implementation(libs.core.splashscreen)
     implementation("androidx.recyclerview:recyclerview:1.3.2")
     implementation("androidx.coordinatorlayout:coordinatorlayout:1.2.0")
     testImplementation(libs.junit)

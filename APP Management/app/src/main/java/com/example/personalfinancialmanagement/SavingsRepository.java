@@ -24,8 +24,8 @@ public class SavingsRepository {
         return remote.addSavingsGoal(userId, title, targetAmount, iconKey, deadlineUtc, cadence);
     }
 
-    public double goalProgress(long userId, long goalId) {
-        List<SavingsContribution> list = remote.listSavingsContributions(userId, goalId);
+    public double goalProgress(long userId, SavingsGoal goal) {
+        List<SavingsContribution> list = remote.listSavingsContributions(userId, goal != null ? goal.id : null, goal != null ? goal.title : null);
         if (list != null) {
             double sum = 0;
             for (SavingsContribution c : list) sum += c.amount;
@@ -34,14 +34,16 @@ public class SavingsRepository {
         return 0;
     }
 
-    public boolean addContribution(long userId, Long goalId, double amount, long whenUtc) {
-        return remote.addSavingsContribution(userId, goalId, amount, whenUtc, false);
+    public boolean addContribution(long userId, SavingsGoal goal, double amount, long whenUtc) {
+        Long goalId = goal != null ? goal.id : null;
+        String title = goal != null ? goal.title : null;
+        return remote.addSavingsContribution(userId, goalId, title, amount, whenUtc, false);
     }
 
     public double monthSavings(long userId, long now) {
         long start = MonthUtils.monthStartUtcMillis(now);
         long end = MonthUtils.monthEndUtcMillis(now);
-        List<SavingsContribution> list = remote.listSavingsContributions(userId, null);
+        List<SavingsContribution> list = remote.listSavingsContributions(userId, null, null);
         if (list != null) {
             double sum = 0;
             for (SavingsContribution c : list) if (c.dateUtc >= start && c.dateUtc <= end) sum += c.amount;
@@ -53,7 +55,7 @@ public class SavingsRepository {
     public double monthAutoAllocated(long userId, long now) {
         long start = MonthUtils.monthStartUtcMillis(now);
         long end = MonthUtils.monthEndUtcMillis(now);
-        List<SavingsContribution> list = remote.listSavingsContributions(userId, null);
+        List<SavingsContribution> list = remote.listSavingsContributions(userId, null, null);
         if (list != null) {
             double sum = 0;
             for (SavingsContribution c : list) if (c.isAuto && c.dateUtc >= start && c.dateUtc <= end) sum += c.amount;
@@ -75,5 +77,10 @@ public class SavingsRepository {
     public void deleteGoal(long userId, SavingsGoal goal) {
         if (goal == null) return;
         remote.deleteSavingsGoal(userId, goal.title);
+    }
+
+    public boolean deleteGoalByTitle(long userId, String title) {
+        if (title == null || title.trim().isEmpty()) return false;
+        return remote.deleteSavingsGoal(userId, title);
     }
 }

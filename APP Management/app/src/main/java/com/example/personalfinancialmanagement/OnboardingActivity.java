@@ -22,6 +22,8 @@ import com.example.personalfinancialmanagement.auth.LoginActivity;
 public class OnboardingActivity extends AppCompatActivity {
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
+        // Switch to the main theme after the splash window on pre-Android 12 devices
+        setTheme(R.style.Theme_PersonalFinancialManagement);
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
         WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
