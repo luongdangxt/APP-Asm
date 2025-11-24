@@ -76,4 +76,9 @@ public class SavingsRepository {
         if (goal == null) return;
         remote.deleteSavingsGoal(userId, goal.title);
     }
+
+    public boolean deleteGoalByTitle(long userId, String title) {
+        if (title == null || title.trim().isEmpty()) return false;
+        return remote.deleteSavingsGoal(userId, title);
+    }
 }

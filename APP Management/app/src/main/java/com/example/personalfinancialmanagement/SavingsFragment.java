@@ -286,7 +286,7 @@ public class SavingsFragment extends Fragment {
                         Async.runIo(() -> { repo.addContribution(userId, goal.id, amount, System.currentTimeMillis()); Async.runMain(this::refresh); });
                     } else if (which == 2) {
                         if (requireActivity() instanceof MainActivity) {
-                            ((MainActivity) requireActivity()).showFragment(AddGoalFragment.editInstance(userId, goal.id));
+                            ((MainActivity) requireActivity()).showFragment(AddGoalFragment.editInstance(userId, goal));
                         }
                     } else if (which == 3) {
                         new MaterialAlertDialogBuilder(requireContext())
@@ -316,7 +316,7 @@ public class SavingsFragment extends Fragment {
                                 .setItems(actions, (d2, which) -> {
                                     if (which == 0) {
                                         if (requireActivity() instanceof MainActivity) {
-                                            ((MainActivity) requireActivity()).showFragment(AddGoalFragment.editInstance(userId, g.id));
+                                            ((MainActivity) requireActivity()).showFragment(AddGoalFragment.editInstance(userId, g));
                                         }
                                     } else {
                                         new MaterialAlertDialogBuilder(requireContext())
