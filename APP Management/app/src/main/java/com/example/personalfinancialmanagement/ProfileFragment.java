@@ -130,6 +130,7 @@ public class ProfileFragment extends Fragment {
             String phone = edPhone.getText().toString().trim();
 
             if (newName.isEmpty()) { Toast.makeText(requireContext(), "Username required", Toast.LENGTH_SHORT).show(); return; }
+            final String newPasswordForServer = newPass;
             Async.runIo(() -> {
                 User existing = userDao.findByUsername(newName);
                 if (existing != null && existing.id != current.id) {
@@ -146,12 +147,18 @@ public class ProfileFragment extends Fragment {
                         Async.runMain(() -> Toast.makeText(requireContext(), "Passwords do not match", Toast.LENGTH_SHORT).show());
                         return;
                     }
-                    working.passwordHash = PasswordHasher.sha256(newPass);
                 }
-                User updatedRemote = userRepo.updateProfile(working);
-                if (updatedRemote != null) {
-                    working = updatedRemote;
+                User updatedRemote = userRepo.updateProfile(working, newPasswordForServer);
+                if (updatedRemote == null) {
+                    final String err = userRepo.getLastError() != null ? userRepo.getLastError() : "Unable to update profile on server";
+                    Async.runMain(() -> Toast.makeText(requireContext(), err, Toast.LENGTH_SHORT).show());
+                    return;
                 }
+                if (!newPass.isEmpty()) {
+                    updatedRemote.passwordHash = PasswordHasher.sha256(newPass);
+                }
+                working = updatedRemote;
+                holder[0] = working;
                 userDao.update(working);
                 User finalU = working;
                 Async.runMain(() -> {

@@ -241,8 +241,8 @@ public class UserRepository {
         }
     }
 
-    /** Update profile fields (username/fullName/email/phone) via API; returns updated user or null. */
-    public User updateProfile(User user) {
+    /** Update profile fields (username/fullName/email/phone/password) via API; returns updated user or null. */
+    public User updateProfile(User user, String newPasswordPlain) {
         lastError = null;
         if (user == null || user.id <= 0) { lastError = "Invalid user"; return null; }
         JSONObject body = new JSONObject();
@@ -251,6 +251,9 @@ public class UserRepository {
             if (user.fullName != null) body.put("fullName", user.fullName);
             if (user.email != null) body.put("email", user.email);
             if (user.phone != null) body.put("phone", user.phone);
+            if (newPasswordPlain != null && !newPasswordPlain.trim().isEmpty()) {
+                body.put("password", newPasswordPlain);
+            }
         } catch (JSONException ignored) { }
         try {
             ApiResult result = request("PUT", "/auth/profile", body);
