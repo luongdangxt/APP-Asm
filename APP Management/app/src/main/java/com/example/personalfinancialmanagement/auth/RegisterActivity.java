@@ -52,6 +52,7 @@ public class RegisterActivity extends AppCompatActivity {
         }
         userRepository = new UserRepository(this);
 
+        EditText fullName = findViewById(R.id.reg_fullname);
         EditText username = findViewById(R.id.reg_username);
         EditText email = findViewById(R.id.reg_email);
         EditText phone = findViewById(R.id.reg_phone);
@@ -72,10 +73,12 @@ public class RegisterActivity extends AppCompatActivity {
         register.setOnClickListener(v -> {
             String u = username.getText().toString().trim();
             String e = email.getText().toString().trim();
+            String fn = fullName != null ? fullName.getText().toString().trim() : "";
             String phLocal = phone.getText().toString().trim();
             String cc = dropCountry != null ? dropCountry.getText().toString() : "+84";
             String codeDigits = cc.replaceAll("[^0-9]", "");
             String ph = (codeDigits.isEmpty()?"":codeDigits) + phLocal.replaceAll("[^0-9]", "");
+            String phoneForApi = ph.isEmpty() ? "" : "+" + ph;
             String p = password.getText().toString();
             String c = confirm.getText().toString();
             android.widget.CheckBox cb = findViewById(R.id.cb_terms);
@@ -116,7 +119,7 @@ public class RegisterActivity extends AppCompatActivity {
                         String code = codeInput.getText().toString().trim();
                         if (!"123456".equals(code)) { Toast.makeText(this, "Invalid code", Toast.LENGTH_SHORT).show(); return; }
                         Async.runIo(() -> {
-                            long id = userRepository.register(u, p, e);
+                            long id = userRepository.register(u, p, e, fn, phoneForApi);
                             if (id > 0) {
                                 Async.runMain(() -> { Toast.makeText(this, "Account created. Please login.", Toast.LENGTH_SHORT).show(); finish(); });
                             } else {
